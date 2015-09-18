@@ -6,7 +6,9 @@ The Yet Another HDLC (yahdlc) implementation is a framing protocol optimized for
 
 https://en.wikipedia.org/wiki/High-Level_Data_Link_Control
 
-The supported frames are limited to DATA (I-frame with Poll bit), ACK (S-frame Receive Ready (RR) with Final bit) and NACK (S-frame Reject (REJ) with Final bit). All DATA frames must be acknowledged or negative acknowledged using the defined ACK and NACK frames. Below are some examples:
+The supported frames are limited to DATA (I-frame with Poll bit), ACK (S-frame Receive Ready (RR) with Final bit) and NACK (S-frame Reject (REJ) with Final bit). All DATA frames must be acknowledged or negative acknowledged using the defined ACK and NACK frames.
+
+Below are some examples:
 
 ```
 Acknowledged frame:
@@ -18,7 +20,7 @@ A ----> B   DATA [Send Seq No]
 A <---- B   NACK [Recv Seq No]
 A ----> B   DATA [Send Seq No]
 
-Acknowledged frame lost:
+Acknowledge frame lost:
 A ----> B   DATA [Send Seq No]
 A  X<-- B    ACK [Recv Seq No]
 #Timeout#
