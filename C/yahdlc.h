@@ -1,6 +1,5 @@
 /**
  * @file yahdlc.h
- * @brief yahdlc - Yet Another HDLC
  */
 
 #ifndef YAHDLC_H

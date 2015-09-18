@@ -1,33 +1,14 @@
-# Yet Another HDLC implementation (yahdlc)
+# yahdlc - Yet Another HDLC
 
 [![Build Status](https://travis-ci.org/bang-olufsen/yahdlc.png)](https://travis-ci.org/bang-olufsen/yahdlc) [![Coverage Status](https://coveralls.io/repos/bang-olufsen/yahdlc/badge.svg?branch=master&service=github)](https://coveralls.io/github/bang-olufsen/yahdlc?branch=master)
 
-A framing protocol optimized for embedded communication with a simple and 
-efficient encoding and decoding (single pass for each operation). The data
-integrity is covered by a 16-bit Frame Check Sequence (CRC) value.
+The Yet Another HDLC (yahdlc) implementation is a framing protocol optimized for embedded communication with single pass operations. It uses the HDLC asynchronous framing format. For more information see:
 
+https://en.wikipedia.org/wiki/High-Level_Data_Link_Control
+
+The supported frames are limited to DATA (I-frame with poll bit), ACK (S-frame Receive Ready (RR) with final bit) and NACK (S-frame Reject (REJ) with final bit). All DATA frames must be acknowledged or negative acknowledged using the defined ACK and NACK frames. 
 
 ## Repository Layout
 
 Each directory contains source code for parsing the protocol in a specific
 language.
-
-
-## Protocol
-
-The protocol is a simplified version of [RFC 1662](https://tools.ietf.org/html/rfc1662) 
-where the Address, Control and Protocol fields have been removed. The frame
-format is:
-
-<pre>
-| Start Byte | Escaped Data | Escaped 16-bit CRC | End Byte |
-</pre>
-
-Each frame starts and ends with the flag sequence value 0x7D. Data is 
-immediately following the start flag sequence. After the data is a two 
-byte CRC. All data and CRC bytes are escaped.
-
-The control escape value is 0x7E. Whenever the value 0x7E or 0x7D occur 
-in the message the value is prefixed by the control escape value and the 
-original value XOR with 0x20. As an example, 0x7E in a message would 
-become 0x7E 0x5E.
