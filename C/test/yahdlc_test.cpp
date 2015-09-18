@@ -16,13 +16,12 @@ BOOST_AUTO_TEST_CASE(yahdlcTest0To512BytesData) {
 
   // Run through the different data sizes
   for (i = 0; i <= sizeof(send_data); i++) {
-    // Initialize the control field structure
+    // Initialize the control field structure with frame type and sequence number
     control_send.frame = YAHDLC_FRAME_DATA;
     control_send.send_seq_no = i;
-    control_send.recv_seq_no = i;
 
     // Create frame which must at least be 6 bytes more than data (escaped characters will increase the length)
-    yahdlc_frame_data(control_send, send_data, i, frame_data, &frame_length);
+    yahdlc_frame_data(&control_send, send_data, i, frame_data, &frame_length);
     BOOST_CHECK(frame_length >= (i + 6));
 
     // Get data from frame. Bytes to be discarded should at least be one byte less than frame length
@@ -34,9 +33,10 @@ BOOST_AUTO_TEST_CASE(yahdlcTest0To512BytesData) {
     // Compare the send and received bytes
     ret = memcmp(send_data, recv_data, i);
     BOOST_CHECK(ret == 0);
+
+    // Verify the control field information
     BOOST_CHECK(control_send.frame == control_recv.frame);
     BOOST_CHECK(control_send.send_seq_no == control_recv.send_seq_no);
-    BOOST_CHECK(control_send.recv_seq_no == control_recv.recv_seq_no);
   }
 }
 
@@ -63,9 +63,10 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDoubleStartFlagSequenceAndEmptyFrame) {
   unsigned int frame_length, recv_length = 0;
   struct yahdlc_control_t control_send, control_recv;
 
-  // Create empty data frame
+  // Create empty data frame with sequence number 7
   control_send.frame = YAHDLC_FRAME_ACK;
-  yahdlc_frame_data(control_send, NULL, 0, frame_data, &frame_length);
+  control_send.recv_seq_no = 7;
+  yahdlc_frame_data(&control_send, NULL, 0, frame_data, &frame_length);
 
   // Add an additional start flag sequence at the beginning
   memmove(&frame_data[1], &frame_data[0], frame_length);
@@ -77,7 +78,10 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDoubleStartFlagSequenceAndEmptyFrame) {
                         &recv_length);
   BOOST_CHECK(ret == ((int )frame_length - 1));
   BOOST_CHECK(recv_length == 0);
+
+  // Verify the control field information
   BOOST_CHECK(control_send.frame == control_recv.frame);
+  BOOST_CHECK(control_send.recv_seq_no == control_recv.recv_seq_no);
 }
 
 BOOST_AUTO_TEST_CASE(yahdlcTestEndFlagSequenceInNewBuffer) {
@@ -93,7 +97,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestEndFlagSequenceInNewBuffer) {
 
   // Create frame which must at least be 6 bytes more than data (escaped characters will increase the length)
   control.frame = YAHDLC_FRAME_NACK;
-  yahdlc_frame_data(control, send_data, sizeof(send_data), frame_data,
+  yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
                     &frame_length);
   BOOST_CHECK(frame_length >= (sizeof(send_data) + 6));
 
@@ -122,7 +126,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFlagSequenceAndControlEscapeInData) {
       frame_data[16], recv_data[16];
 
   // Create the frame with the special flag sequence and control escape bytes
-  yahdlc_frame_data(control, send_data, sizeof(send_data), frame_data,
+  yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
                     &frame_length);
   // Length should be frame size (6) + 2 data bytes + 2 escaped characters = 10
   BOOST_CHECK(frame_length == 10);
@@ -150,7 +154,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestGetDataFromMultipleBuffers) {
   }
 
   // Create frame which must at least be 4 bytes more than data (escaped characters will increase the length)
-  yahdlc_frame_data(control, send_data, sizeof(send_data), frame_data,
+  yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
                     &frame_length);
   BOOST_CHECK(frame_length >= (sizeof(send_data) + 4));
 
@@ -189,7 +193,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithSingleFlagSequence) {
   // Run through the number of frames to be send
   for (i = 0; i < frames; i++) {
     // Create frame which must at least be 4 bytes more than data (escaped characters will increase the length)
-    yahdlc_frame_data(control, send_data, sizeof(send_data),
+    yahdlc_frame_data(&control, send_data, sizeof(send_data),
                       &frame_data[frame_index], &frame_length);
     BOOST_CHECK(frame_length >= (sizeof(send_data) + 4));
 
@@ -232,7 +236,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithDoubleFlagSequence) {
   // Run through the number of frames to be send
   for (i = 0; i < frames; i++) {
     // Create frame which must at least be 4 bytes more than data (escaped characters will increase the length)
-    yahdlc_frame_data(control, send_data, sizeof(send_data),
+    yahdlc_frame_data(&control, send_data, sizeof(send_data),
                       &frame_data[frame_index], &frame_length);
     BOOST_CHECK(frame_length >= (sizeof(send_data) + 4));
 
@@ -269,7 +273,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFramesWithBitErrors) {
   // Run through the bytes in a frame with a single byte of data
   for (i = 0; i < (sizeof(send_data) + 6); i++) {
     // Create the frame
-    yahdlc_frame_data(control, send_data, sizeof(send_data), frame_data,
+    yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
                       &frame_length);
     BOOST_CHECK(frame_length == (sizeof(send_data) + 6));
 

@@ -6,9 +6,10 @@ void yahdlc_escape_value(char value, char *dest, int *dest_index) {
   if ((value == YAHDLC_FLAG_SEQUENCE) || (value == YAHDLC_CONTROL_ESCAPE)) {
     dest[*dest_index] = YAHDLC_CONTROL_ESCAPE;
     *dest_index += 1;
-    value = value ^ 0x20;
+    value ^= 0x20;
   }
 
+  // Add the value to the destination buffer
   dest[*dest_index] = value;
   *dest_index += 1;
 }
@@ -39,25 +40,25 @@ struct yahdlc_control_t yahdlc_get_control_value(unsigned char control) {
   return value;
 }
 
-unsigned char yahdlc_frame_control_value(struct yahdlc_control_t control) {
+unsigned char yahdlc_frame_control_value(struct yahdlc_control_t *control) {
   unsigned char value = 0;
 
   // For details see: https://en.wikipedia.org/wiki/High-Level_Data_Link_Control
-  switch (control.frame) {
+  switch (control->frame) {
     case YAHDLC_FRAME_DATA:
       // Create the HDLC I-frame control byte with poll bit set
-      value |= ((control.recv_seq_no & 0x7) << 5);
+      value |= ((control->recv_seq_no & 0x7) << 5);
       value |= (1 << 4);  // Set poll bit
-      value |= ((control.send_seq_no & 0x7) << 1);
+      value |= ((control->send_seq_no & 0x7) << 1);
       break;
     case YAHDLC_FRAME_ACK:
       // Create the HDLC Receive Ready S-frame control byte with poll bit cleared (final)
-      value |= ((control.recv_seq_no & 0x7) << 5);
+      value |= ((control->recv_seq_no & 0x7) << 5);
       value |= 1;  // Set S-frame bit
       break;
     case YAHDLC_FRAME_NACK:
       // Create the HDLC Receive Ready S-frame control byte with poll bit cleared (final)
-      value |= ((control.recv_seq_no & 0x7) << 5);
+      value |= ((control->recv_seq_no & 0x7) << 5);
       value |= (1 << 3);  // Reject S-frame
       value |= 1;  // Set S-frame bit
       break;
@@ -113,12 +114,12 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
         // Now update the FCS value
         fcs = fcs16(fcs, value);
 
-        // Retrieve the control field value
+        // Retrieve the control field value and convert it
         if (src_index == start_index + 2) {
           *control = yahdlc_get_control_value(value);
         }
 
-        // Start adding the data values to the destination buffer
+        // Start adding the data values after the address and control field to the destination buffer
         if (src_index > (start_index + 2)) {
           dest[dest_index++] = value;
         }
@@ -152,7 +153,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
   return ret;
 }
 
-void yahdlc_frame_data(struct yahdlc_control_t control, const char *src,
+void yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
                        unsigned int src_len, char *dest, unsigned int *dest_len) {
   unsigned int i;
   int dest_index = 0;
@@ -166,7 +167,7 @@ void yahdlc_frame_data(struct yahdlc_control_t control, const char *src,
   fcs = fcs16(fcs, YAHDLC_ALL_STATION);
   yahdlc_escape_value(YAHDLC_ALL_STATION, dest, &dest_index);
 
-  // Add the converted control field
+  // Add the framed control field value
   value = yahdlc_frame_control_value(control);
   fcs = fcs16(fcs, value);
   yahdlc_escape_value(value, dest, &dest_index);

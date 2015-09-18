@@ -1,6 +1,5 @@
 /**
  * @file yahdlc.h
- * @brief yahdlc - Yet Another HDLC
  */
 
 #ifndef YAHDLC_H
@@ -30,8 +29,8 @@ struct yahdlc_control_t {
 };
 
 /**
- * Retrieves data from specified buffer containing the frame. Frames can be parsed from
- * multiple buffers e.g. when received via UART.
+ * Retrieves data from specified buffer containing the HDLC frame. Frames can be
+ * parsed from multiple buffers e.g. when received via UART.
  *
  * @param[out] control Control field information e.g. frame type and sequence number
  * @param[in] src Source buffer with frame
@@ -46,7 +45,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len);
 
 /**
- * Creates frame with specified data buffer.
+ * Creates HDLC frame with specified data buffer.
  *
  * @param[in] control Control field information e.g. frame type and sequence number
  * @param[in] src Source buffer with data
@@ -54,7 +53,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
  * @param[out] dest Destination buffer (should be bigger than source buffer)
  * @param[out] dest_len Destination buffer length
  */
-void yahdlc_frame_data(struct yahdlc_control_t control, const char *src,
+void yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
                        unsigned int src_len, char *dest,
                        unsigned int *dest_len);
 
