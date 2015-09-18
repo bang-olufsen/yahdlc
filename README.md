@@ -23,7 +23,6 @@ format is:
 | Start Byte | Escaped Data | Escaped 16-bit CRC | End Byte |
 </pre>
 
-
 Each frame starts and ends with the flag sequence value 0x7D. Data is 
 immediately following the start flag sequence. After the data is a two 
 byte CRC. All data and CRC bytes are escaped.
