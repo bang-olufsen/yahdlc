@@ -9,7 +9,7 @@ void yahdlc_escape_value(char value, char *dest, int *dest_index) {
     value ^= 0x20;
   }
 
-  // Add the value to the destination buffer
+  // Add the value to the destination buffer and increment destination index
   dest[*dest_index] = value;
   *dest_index += 1;
 }
@@ -17,9 +17,9 @@ void yahdlc_escape_value(char value, char *dest, int *dest_index) {
 struct yahdlc_control_t yahdlc_get_control_value(unsigned char control) {
   struct yahdlc_control_t value;
 
-  // Check if the frame is a S-frame
+  // Check if the frame is a S-frame or U-frame (first bit set)
   if (control & 0x1) {
-    // Check if S-frame is an ACK (Receive Ready S-frame)
+    // Check if S-frame is an ACK/Receive Ready S-frame (Only first bit out of 4 should be set)
     if ((control & 0xF) == 0x1) {
       value.frame = YAHDLC_FRAME_ACK;
     } else {
@@ -29,12 +29,12 @@ struct yahdlc_control_t yahdlc_get_control_value(unsigned char control) {
     // Just clear the send sequence number as it is not part of an S-frame (and U-frame)
     value.send_seq_no = 0;
   } else {
-    // It must be an I-frame so add the send sequence number
+    // It must be an I-frame so add the send sequence number (3-bit)
     value.frame = YAHDLC_FRAME_DATA;
     value.send_seq_no = ((control >> 1) & 0x7);
   }
 
-  // The receive sequence number is present in all frames
+  // The receive sequence number (3-bit) is present in all frames
   value.recv_seq_no = ((control >> 5) & 0x7);
 
   return value;
@@ -75,7 +75,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
   static int ret, start_index = -1, end_index = -1, src_index = 0, dest_index =
       0;
 
-  // Run through the data
+  // Run through the data bytes
   for (i = 0; i < src_len; i++) {
     // First find the start flag sequence
     if (start_index < 0) {
@@ -163,7 +163,7 @@ void yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
   // Start by adding the start flag sequence
   dest[dest_index++] = YAHDLC_FLAG_SEQUENCE;
 
-  // Add the all station address from HDLC (broadcast)
+  // Add the all-station address from HDLC (broadcast)
   fcs = fcs16(fcs, YAHDLC_ALL_STATION);
   yahdlc_escape_value(YAHDLC_ALL_STATION, dest, &dest_index);
 
