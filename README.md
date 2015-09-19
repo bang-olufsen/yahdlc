@@ -1,6 +1,6 @@
 # Yet Another HDLC
 
-[![Build Status](https://travis-ci.org/bang-olufsen/yahdlc.png)](https://travis-ci.org/bang-olufsen/yahdlc) [![Coverage Status](https://coveralls.io/repos/bang-olufsen/yahdlc/badge.svg?branch=master&service=github)](https://coveralls.io/github/bang-olufsen/yahdlc?branch=master) [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+[![Build Status](https://travis-ci.org/bang-olufsen/yahdlc.png)](https://travis-ci.org/bang-olufsen/yahdlc) [![Coverage Status](https://coveralls.io/repos/bang-olufsen/yahdlc/badge.svg?branch=master&service=github)](https://coveralls.io/github/bang-olufsen/yahdlc?branch=master) [![License](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
 
 The Yet Another High Level Data Link Control (yahdlc) implementation is a framing protocol optimized for embedded communication with single pass operations. It uses the HDLC asynchronous framing format. For more information see:
 
@@ -24,8 +24,3 @@ A  X<-- B    ACK [Recv Seq No]
  Timeout
 A ----> B   DATA [Send Seq No]
 ```
-
-## Repository Layout
-
-Each directory contains source code for parsing the protocol in a specific
-language.
