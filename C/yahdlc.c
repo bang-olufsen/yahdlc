@@ -19,7 +19,7 @@ struct yahdlc_control_t yahdlc_get_control_value(unsigned char control) {
 
   // Check if the frame is a S-frame or U-frame (first bit set)
   if (control & 0x1) {
-    // Check if S-frame is an ACK/Receive Ready S-frame (Only first bit out
+    // Check if S-frame is an ACK/Receive Ready S-frame (only first bit out
     // of 4 should be set)
     if ((control & 0xF) == 0x1) {
       value.frame = YAHDLC_FRAME_ACK;
@@ -55,14 +55,12 @@ unsigned char yahdlc_frame_control_value(struct yahdlc_control_t *control) {
       value |= ((control->send_seq_no & 0x7) << 1);
       break;
     case YAHDLC_FRAME_ACK:
-      // Create the HDLC Receive Ready S-frame control byte with Poll bit
-      // cleared (Final)
+      // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared
       value |= ((control->recv_seq_no & 0x7) << 5);
       value |= 1;  // Set S-frame bit
       break;
     case YAHDLC_FRAME_NACK:
-      // Create the HDLC Receive Ready S-frame control byte with Poll bit
-      // cleared (Final)
+      // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared
       value |= ((control->recv_seq_no & 0x7) << 5);
       value |= (1 << 3);  // Reject S-frame
       value |= 1;  // Set S-frame bit
@@ -101,8 +99,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
     } else {
       // Check for end flag sequence
       if (src[i] == YAHDLC_FLAG_SEQUENCE) {
-        // Check if an additional flag sequence byte is present or was earlier
-        // received
+        // Check if an additional flag sequence byte is present or earlier received
         if (((i < (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE))
             || ((start_index + 1) == src_index)) {
           // Just loop again to silently discard it (accordingly to HDLC)
@@ -125,14 +122,12 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
         // Now update the FCS value
         fcs = fcs16(fcs, value);
 
-        // Convert the second byte after the start flag sequence as this is the
-        // Control field
+       // Control field is the second byte after the start flag sequence
         if (src_index == start_index + 2) {
           *control = yahdlc_get_control_value(value);
         }
 
-        // Start adding the data values after the Address and Control field to the
-        // destination buffer
+        // Start adding the data values after the Control field to the buffer
         if (src_index > (start_index + 2)) {
           dest[dest_index++] = value;
         }
@@ -141,8 +136,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
     src_index++;
   }
 
-  // Check for invalid frame (no start or end flag sequence) and FCS error (less
-  // than 4 bytes frame)
+  // Check for an invalid frame
   if ((start_index < 0) || (end_index < 0)) {
     // Return no start or end flag sequence and make sure destination length is 0
     *dest_len = 0;
