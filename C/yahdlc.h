@@ -12,7 +12,7 @@
 #define YAHDLC_CONTROL_ESCAPE 0x7E
 
 /** HDLC all station address */
-#define YAHDLC_ALL_STATION 0xFF
+#define YAHDLC_ALL_STATION_ADDR 0xFF
 
 /** Supported HDLC frame types */
 enum yahdlc_frame_t {
@@ -37,9 +37,10 @@ struct yahdlc_control_t {
  * @param[in] src_len Source buffer length
  * @param[out] dest Destination buffer (should be able to contain max frame size)
  * @param[out] dest_len Destination buffer length
- * @retval -2 Invalid FCS (size of dest_len should be discarded from source buffer)
- * @retval -1 Invalid message
  * @retval >=0 Success (size of returned value should be discarded from source buffer)
+ * @retval -1 Invalid parameter
+ * @retval -2 Invalid message
+ * @retval -3 Invalid FCS (size of dest_len should be discarded from source buffer)
  */
 int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len);
@@ -52,9 +53,10 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
  * @param[in] src_len Source buffer length
  * @param[out] dest Destination buffer (should be bigger than source buffer)
  * @param[out] dest_len Destination buffer length
+ * @retval 0 Success
+ * @retval -1 Invalid parameter
  */
-void yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
-                       unsigned int src_len, char *dest,
-                       unsigned int *dest_len);
+int yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
+                      unsigned int src_len, char *dest, unsigned int *dest_len);
 
 #endif
