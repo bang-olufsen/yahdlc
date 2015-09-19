@@ -6,7 +6,7 @@ The Yet Another High-Level Data Link Control (yahdlc) implementation is a framin
 
 https://en.wikipedia.org/wiki/High-Level_Data_Link_Control
 
-The supported frames are limited to DATA (I-frame with Poll bit), ACK (S-frame Receive Ready with Final bit) and NACK (S-frame Reject with Final bit). All DATA frames must be acknowledged or negative acknowledged using the defined ACK and NACK frames.
+The supported frames are limited to DATA (I-frame with Poll bit), ACK (S-frame Receive Ready with Final bit) and NACK (S-frame Reject with Final bit). All DATA frames must be acknowledged or negative acknowledged using the defined ACK and NACK frames. The Control field is 8-bit which mean that the highest sequence number is 7.
 
 Below are some examples on the usage:
 

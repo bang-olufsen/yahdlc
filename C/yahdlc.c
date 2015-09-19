@@ -2,7 +2,7 @@
 #include "yahdlc.h"
 
 void yahdlc_escape_value(char value, char *dest, int *dest_index) {
-  // Check if the value should be escaped
+  // Check and escape the value if needed
   if ((value == YAHDLC_FLAG_SEQUENCE) || (value == YAHDLC_CONTROL_ESCAPE)) {
     dest[*dest_index] = YAHDLC_CONTROL_ESCAPE;
     *dest_index += 1;
@@ -46,18 +46,18 @@ unsigned char yahdlc_frame_control_value(struct yahdlc_control_t *control) {
   // For details see: https://en.wikipedia.org/wiki/High-Level_Data_Link_Control
   switch (control->frame) {
     case YAHDLC_FRAME_DATA:
-      // Create the HDLC I-frame control byte with poll bit set
+      // Create the HDLC I-frame control byte with Poll bit set
       value |= ((control->recv_seq_no & 0x7) << 5);
-      value |= (1 << 4);  // Set poll bit
+      value |= (1 << 4);  // Set Poll bit
       value |= ((control->send_seq_no & 0x7) << 1);
       break;
     case YAHDLC_FRAME_ACK:
-      // Create the HDLC Receive Ready S-frame control byte with poll bit cleared (final)
+      // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared (Final)
       value |= ((control->recv_seq_no & 0x7) << 5);
       value |= 1;  // Set S-frame bit
       break;
     case YAHDLC_FRAME_NACK:
-      // Create the HDLC Receive Ready S-frame control byte with poll bit cleared (final)
+      // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared (Final)
       value |= ((control->recv_seq_no & 0x7) << 5);
       value |= (1 << 3);  // Reject S-frame
       value |= 1;  // Set S-frame bit
@@ -114,12 +114,12 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
         // Now update the FCS value
         fcs = fcs16(fcs, value);
 
-        // Retrieve the control field value and convert it
+        // Convert the second byte after the start flag sequence as this is the Control field
         if (src_index == start_index + 2) {
           *control = yahdlc_get_control_value(value);
         }
 
-        // Start adding the data values after the address and control field to the destination buffer
+        // Start adding the data values after the Address and Control field to the destination buffer
         if (src_index > (start_index + 2)) {
           dest[dest_index++] = value;
         }
@@ -163,7 +163,7 @@ void yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
   // Start by adding the start flag sequence
   dest[dest_index++] = YAHDLC_FLAG_SEQUENCE;
 
-  // Add the all station address from HDLC
+  // Add the all station address from HDLC (broadcast)
   fcs = fcs16(fcs, YAHDLC_ALL_STATION);
   yahdlc_escape_value(YAHDLC_ALL_STATION, dest, &dest_index);
 
@@ -178,7 +178,7 @@ void yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
     yahdlc_escape_value(src[i], dest, &dest_index);
   }
 
-  // Invert the FCS value
+  // Invert the FCS value accordingly to the specification
   fcs ^= 0xFFFF;
 
   // Run through the FCS bytes and escape the values
