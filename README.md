@@ -1,4 +1,4 @@
-## yahdlc - Yet Another HDLC
+# yahdlc - Yet Another HDLC
 
 [![Build Status](https://travis-ci.org/bang-olufsen/yahdlc.png)](https://travis-ci.org/bang-olufsen/yahdlc) [![Coverage Status](https://coveralls.io/repos/bang-olufsen/yahdlc/badge.svg?branch=master&service=github)](https://coveralls.io/github/bang-olufsen/yahdlc?branch=master) [![License](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
 
