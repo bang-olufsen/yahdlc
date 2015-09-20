@@ -14,7 +14,7 @@ void yahdlc_escape_value(char value, char *dest, int *dest_index) {
   *dest_index += 1;
 }
 
-struct yahdlc_control_t yahdlc_get_control_value(unsigned char control) {
+struct yahdlc_control_t yahdlc_get_control_type(unsigned char control) {
   struct yahdlc_control_t value;
 
   // Check if the frame is a S-frame or U-frame (first bit set)
@@ -43,7 +43,7 @@ struct yahdlc_control_t yahdlc_get_control_value(unsigned char control) {
   return value;
 }
 
-unsigned char yahdlc_frame_control_value(struct yahdlc_control_t *control) {
+unsigned char yahdlc_frame_control_type(struct yahdlc_control_t *control) {
   unsigned char value = 0;
 
   // For details see: https://en.wikipedia.org/wiki/High-Level_Data_Link_Control
@@ -124,7 +124,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
 
        // Control field is the second byte after the start flag sequence
         if (src_index == start_index + 2) {
-          *control = yahdlc_get_control_value(value);
+          *control = yahdlc_get_control_type(value);
         }
 
         // Start adding the data values after the Control field to the buffer
@@ -183,7 +183,7 @@ int yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
   yahdlc_escape_value(YAHDLC_ALL_STATION_ADDR, dest, &dest_index);
 
   // Add the framed control field value
-  value = yahdlc_frame_control_value(control);
+  value = yahdlc_frame_control_type(control);
   fcs = fcs16(fcs, value);
   yahdlc_escape_value(value, dest, &dest_index);
 
