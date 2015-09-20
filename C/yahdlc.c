@@ -4,14 +4,12 @@
 void yahdlc_escape_value(char value, char *dest, int *dest_index) {
   // Check and escape the value if needed
   if ((value == YAHDLC_FLAG_SEQUENCE) || (value == YAHDLC_CONTROL_ESCAPE)) {
-    dest[*dest_index] = YAHDLC_CONTROL_ESCAPE;
-    *dest_index += 1;
+    dest[(*dest_index)++] = YAHDLC_CONTROL_ESCAPE;
     value ^= 0x20;
   }
 
   // Add the value to the destination buffer and increment destination index
-  dest[*dest_index] = value;
-  *dest_index += 1;
+  dest[(*dest_index)++] = value;
 }
 
 struct yahdlc_control_t yahdlc_get_control_type(unsigned char control) {
@@ -136,7 +134,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
     src_index++;
   }
 
-  // Check for an invalid frame
+  // Check for an invalid frame (start + end flag and minimum 4 bytes in size)
   if ((start_index < 0) || (end_index < 0)) {
     // Return no start or end flag sequence and make sure destination length is 0
     *dest_len = 0;
@@ -148,7 +146,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
     ret = -3;
   } else {
     // Return success and indicate that data up to end flag sequence in buffer
-    // should be discarded
+    // should be discarded. FCS (16-bit) must be subtracted from the length
     *dest_len = dest_index - 2;
     ret = i;
   }
