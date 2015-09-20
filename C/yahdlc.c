@@ -130,25 +130,26 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
     src_index++;
   }
 
-  // Check for an invalid frame (start + end flag and minimum 4 bytes in size)
+  // Check for invalid frame
   if ((start_index < 0) || (end_index < 0)) {
     // Return no start or end flag sequence and make sure destination length is 0
     *dest_len = 0;
     ret = -2;
-  } else if ((end_index < (start_index + 4)) || (fcs != FCS16_GOOD_VALUE)) {
-    // Return FCS error and indicate that data up to end flag sequence in
-    // buffer should be discarded
-    *dest_len = i;
-    ret = -3;
   } else {
-    // Return success and indicate that data up to end flag sequence in buffer
-    // should be discarded. FCS (16-bit) must be subtracted from the length
-    *dest_len = dest_index - 2;
-    ret = i;
-  }
+    // A frame is at least 4 bytes in size and has a valid FCS value
+    if ((end_index < (start_index + 4)) || (fcs != FCS16_GOOD_VALUE)) {
+      // Return FCS error and indicate that data up to end flag sequence in
+      // buffer should be discarded
+      *dest_len = i;
+      ret = -3;
+    } else {
+      // Return success and indicate that data up to end flag sequence in buffer
+      // should be discarded. FCS (16-bit) must be subtracted from the length
+      *dest_len = dest_index - 2;
+      ret = i;
+    }
 
-  // Reset values for next frame if start and end flag sequence has been detected
-  if (ret != -2) {
+    // Reset values for next frame
     fcs = FCS16_INIT_VALUE;
     src_index = dest_index = 0;
     start_index = end_index = -1;
