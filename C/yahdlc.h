@@ -24,8 +24,7 @@ enum yahdlc_frame_t {
 /** Control field information */
 struct yahdlc_control_t {
   yahdlc_frame_t frame;
-  unsigned char recv_seq_no :3;
-  unsigned char send_seq_no :3;
+  unsigned char seq_no :3;
 };
 
 /**

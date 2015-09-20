@@ -17,7 +17,7 @@ struct yahdlc_control_t yahdlc_get_control_type(unsigned char control) {
 
   // Check if the frame is a S-frame or U-frame (first bit set)
   if (control & 0x1) {
-    // Check if S-frame is an ACK (Receive Ready S-frame) Here only first bit
+    // Check if S-frame is an ACK (Receive Ready S-frame). Here only first bit
     // out of 4 should be set
     if ((control & 0xF) == 0x1) {
       value.frame = YAHDLC_FRAME_ACK;
@@ -26,17 +26,14 @@ struct yahdlc_control_t yahdlc_get_control_type(unsigned char control) {
       // U-frames are not supported
       value.frame = YAHDLC_FRAME_NACK;
     }
-    // Just clear the send sequence number as it is not part of an S-frame
-    // (and U-frame)
-    value.send_seq_no = 0;
+
+    // Add the receive sequence number (3-bit)
+    value.seq_no = ((control >> 5) & 0x7);
   } else {
     // It must be an I-frame so add the send sequence number (3-bit)
     value.frame = YAHDLC_FRAME_DATA;
-    value.send_seq_no = ((control >> 1) & 0x7);
+    value.seq_no = ((control >> 1) & 0x7);
   }
-
-  // The receive sequence number (3-bit) is present in all frames
-  value.recv_seq_no = ((control >> 5) & 0x7);
 
   return value;
 }
@@ -48,21 +45,17 @@ unsigned char yahdlc_frame_control_type(struct yahdlc_control_t *control) {
   switch (control->frame) {
     case YAHDLC_FRAME_DATA:
       // Create the HDLC I-frame control byte with Poll bit set
-      value |= ((control->recv_seq_no & 0x7) << 5);
-      value |= ((control->send_seq_no & 0x7) << 1);
-      // Only set the Poll bit if we are not acknowledging any frames
-      if (!control->recv_seq_no) {
-        value |= (1 << 4);  // Set Poll bit
-      }
+      value |= ((control->seq_no & 0x7) << 1); // Send sequence number
+      value |= (1 << 4);  // Set Poll bit
       break;
     case YAHDLC_FRAME_ACK:
       // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared
-      value |= ((control->recv_seq_no & 0x7) << 5);
+      value |= ((control->seq_no & 0x7) << 5); // Receive sequence number
       value |= 1;  // Set S-frame bit
       break;
     case YAHDLC_FRAME_NACK:
       // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared
-      value |= ((control->recv_seq_no & 0x7) << 5);
+      value |= ((control->seq_no & 0x7) << 5); // Receive sequence number
       value |= (1 << 3);  // Reject S-frame
       value |= 1;  // Set S-frame bit
       break;

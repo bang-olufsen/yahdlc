@@ -70,8 +70,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDataFrameControlField) {
   for (i = 0; i < (1 << 3); i++) {
     // Initialize the control field structure with frame type and sequence number
     control_send.frame = YAHDLC_FRAME_DATA;
-    control_send.send_seq_no = i;
-    control_send.recv_seq_no = i;
+    control_send.seq_no = i;
 
     // Create an empty frame with the control field information
     ret = yahdlc_frame_data(&control_send, NULL, 0, frame_data, &frame_length);
@@ -88,8 +87,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDataFrameControlField) {
 
     // Verify the control field information
     BOOST_CHECK_EQUAL(control_send.frame, control_recv.frame);
-    BOOST_CHECK_EQUAL(control_send.send_seq_no, control_recv.send_seq_no);
-    BOOST_CHECK_EQUAL(control_send.recv_seq_no, control_recv.recv_seq_no);
+    BOOST_CHECK_EQUAL(control_send.seq_no, control_recv.seq_no);
   }
 }
 
@@ -103,7 +101,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestAckFrameControlField) {
   for (i = 0; i <= (1 << 3); i++) {
     // Initialize the control field structure with frame type and sequence number
     control_send.frame = YAHDLC_FRAME_ACK;
-    control_send.recv_seq_no = i;
+    control_send.seq_no = i;
 
     // Create an empty frame with the control field information
     ret = yahdlc_frame_data(&control_send, NULL, 0, frame_data, &frame_length);
@@ -120,7 +118,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestAckFrameControlField) {
 
     // Verify the control field information
     BOOST_CHECK_EQUAL(control_send.frame, control_recv.frame);
-    BOOST_CHECK_EQUAL(control_send.recv_seq_no, control_recv.recv_seq_no);
+    BOOST_CHECK_EQUAL(control_send.seq_no, control_recv.seq_no);
   }
 }
 
@@ -134,7 +132,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestNackFrameControlField) {
   for (i = 0; i <= (1 << 3); i++) {
     // Initialize the control field structure with frame type and sequence number
     control_send.frame = YAHDLC_FRAME_NACK;
-    control_send.recv_seq_no = i;
+    control_send.seq_no = i;
 
     // Create an empty frame with the control field information
     ret = yahdlc_frame_data(&control_send, NULL, 0, frame_data, &frame_length);
@@ -151,7 +149,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestNackFrameControlField) {
 
     // Verify the control field information
     BOOST_CHECK_EQUAL(control_send.frame, control_recv.frame);
-    BOOST_CHECK_EQUAL(control_send.recv_seq_no, control_recv.recv_seq_no);
+    BOOST_CHECK_EQUAL(control_send.seq_no, control_recv.seq_no);
   }
 }
 
