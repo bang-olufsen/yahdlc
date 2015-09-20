@@ -6,23 +6,27 @@ The Yet Another High-Level Data Link Control implementation is a framing protoco
 
 https://en.wikipedia.org/wiki/High-Level_Data_Link_Control
 
-The supported frames are limited to DATA (I-frame with Poll bit), ACK (S-frame Receive Ready with Final bit) and NACK (S-frame Reject with Final bit). All DATA frames must be acknowledged or negative acknowledged using the defined ACK and NACK frames. The Address and Control fields uses the 8-bit format which means that the highest sequence number is 7. The FCS field is 16-bit in size.
+The supported frames are limited to DATA (I-frame with Poll/Final bit depending on valid receive sequence number), ACK (S-frame Receive Ready with Final bit) and NACK (S-frame Reject with Final bit). The Address and Control fields uses the 8-bit format which means that the highest sequence number is 7. The FCS field is 16-bit in size.
 
 Below are some examples on the usage:
 
 ```
-Acknowledged frame:
-A ----> B   DATA [Send sequence number]
-A <---- B    ACK [Receive sequence number]
+Acknowledge using ACK frame:
+A ----> B   DATA [Poll, Send Seq No]
+A <---- B    ACK [Final, Recv Seq No]
 
-Negative acknowledged frame:
-A ----> B   DATA [Send sequence number]
-A <---- B   NACK [Receive sequence number]
-A ----> B   DATA [Send sequence number]
+Acknowledge using DATA frame:
+A ----> B   DATA [Poll, Send Seq No]
+A <---- B   DATA [Final, Send Seq No, Recv Seq No]
+
+Negative acknowledge using NACK frame:
+A ----> B   DATA [Poll, Send Seq No]
+A <---- B   NACK [Final, Recv Seq No]
+A ----> B   DATA [Poll, Send Seq No]
 
 Acknowledge frame lost:
-A ----> B   DATA [Send sequence number]
-A  X<-- B    ACK [Receive sequence number]
+A ----> B   DATA [Poll, Send Seq No]
+A  X<-- B    ACK [Final, Recv Seq No]
 *Timeout*
-A ----> B   DATA [Send sequence number]
+A ----> B   DATA [Poll, Send Seq No]
 ```

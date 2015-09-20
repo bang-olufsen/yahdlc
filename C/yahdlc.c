@@ -17,8 +17,8 @@ struct yahdlc_control_t yahdlc_get_control_type(unsigned char control) {
 
   // Check if the frame is a S-frame or U-frame (first bit set)
   if (control & 0x1) {
-    // Check if S-frame is an ACK/Receive Ready S-frame (only first bit out
-    // of 4 should be set)
+    // Check if S-frame is an ACK (Receive Ready S-frame) Here only first bit
+    // out of 4 should be set
     if ((control & 0xF) == 0x1) {
       value.frame = YAHDLC_FRAME_ACK;
     } else {
@@ -49,8 +49,11 @@ unsigned char yahdlc_frame_control_type(struct yahdlc_control_t *control) {
     case YAHDLC_FRAME_DATA:
       // Create the HDLC I-frame control byte with Poll bit set
       value |= ((control->recv_seq_no & 0x7) << 5);
-      value |= (1 << 4);  // Set Poll bit
       value |= ((control->send_seq_no & 0x7) << 1);
+      // Only set the Poll bit if we are not acknowledging any frames
+      if (!control->recv_seq_no) {
+        value |= (1 << 4);  // Set Poll bit
+      }
       break;
     case YAHDLC_FRAME_ACK:
       // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared
