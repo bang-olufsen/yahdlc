@@ -12,19 +12,19 @@ Below are some examples on the usage:
 
 ```
 Acknowledge of frames:
-A ----> B   DATA [Send sequence number = 1]
-A <---- B   DATA [Send sequence number = 4]
-A <---- B    ACK [Receive sequence number = 2]
-A ----> B    ACK [Recv sequence number = 5]
+A ----> B   DATA [Seq No = 1]
+A <---- B   DATA [Seq No = 4]
+A <---- B    ACK [Seq No = 2]
+A ----> B    ACK [Seq No = 5]
 
 Negative acknowledge of frame:
-A ----> B   DATA [Send sequence number = 1]
-A <---- B   NACK [Receive sequence number = 1]
-A ----> B   DATA [Send sequence number = 1]
+A ----> B   DATA [Seq No = 1]
+A <---- B   NACK [Seq No = 1]
+A ----> B   DATA [Seq No = 1]
 
 Acknowledge frame lost:
-A ----> B   DATA [Send sequence number = 1]
-A  X<-- B    ACK [Receive sequence number = 2]
+A ----> B   DATA [Seq No = 1]
+A  X<-- B    ACK [Seq No = 2]
 *Timeout*
-A ----> B   DATA [Send sequence number = 1]
+A ----> B   DATA [Seq No = 1]
 ```
