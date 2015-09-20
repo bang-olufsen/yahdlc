@@ -181,10 +181,13 @@ int yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
   fcs = fcs16(fcs, value);
   yahdlc_escape_value(value, dest, &dest_index);
 
-  // Calculate FCS and escape data
-  for (i = 0; i < src_len; i++) {
-    fcs = fcs16(fcs, src[i]);
-    yahdlc_escape_value(src[i], dest, &dest_index);
+  // Only DATA frames should contain data
+  if (control->frame == YAHDLC_FRAME_DATA) {
+    // Calculate FCS and escape data
+    for (i = 0; i < src_len; i++) {
+      fcs = fcs16(fcs, src[i]);
+      yahdlc_escape_value(src[i], dest, &dest_index);
+    }
   }
 
   // Invert the FCS value accordingly to the specification

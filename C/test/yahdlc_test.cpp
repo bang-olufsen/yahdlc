@@ -166,6 +166,9 @@ BOOST_AUTO_TEST_CASE(yahdlcTest0To512BytesData) {
 
   // Run through the different data sizes
   for (i = 0; i <= sizeof(send_data); i++) {
+    // Initialize control field structure
+    control_send.frame = YAHDLC_FRAME_DATA;
+
     // Create the frame
     ret = yahdlc_frame_data(&control_send, send_data, i, frame_data,
                             &frame_length);
@@ -214,6 +217,9 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDoubleStartFlagSequenceAndEmptyFrame) {
   unsigned int frame_length, recv_length = 0;
   struct yahdlc_control_t control_send, control_recv;
 
+  // Initialize control field structure
+  control_send.frame = YAHDLC_FRAME_DATA;
+
   // Create an empty frame
   ret = yahdlc_frame_data(&control_send, NULL, 0, frame_data, &frame_length);
   BOOST_CHECK_EQUAL(ret, 0);
@@ -242,6 +248,9 @@ BOOST_AUTO_TEST_CASE(yahdlcTestEndFlagSequenceInNewBuffer) {
   for (i = 0; i < sizeof(send_data); i++) {
     send_data[i] = (char) rand();
   }
+
+  // Initialize control field structure
+  control.frame = YAHDLC_FRAME_DATA;
 
   // Create the frame
   ret = yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
@@ -277,6 +286,9 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFlagSequenceAndControlEscapeInData) {
   char send_data[] = { YAHDLC_FLAG_SEQUENCE, YAHDLC_CONTROL_ESCAPE },
       frame_data[16], recv_data[16];
 
+  // Initialize control field structure
+  control.frame = YAHDLC_FRAME_DATA;
+
   // Create the frame with the special flag sequence and control escape bytes
   ret = yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
                           &frame_length);
@@ -305,6 +317,9 @@ BOOST_AUTO_TEST_CASE(yahdlcTestGetDataFromMultipleBuffers) {
   for (i = 0; i < sizeof(send_data); i++) {
     send_data[i] = (char) rand();
   }
+
+  // Initialize control field structure
+  control.frame = YAHDLC_FRAME_DATA;
 
   // Create frame which must at least be 4 bytes more than data (escaped
   // characters will increase the length)
@@ -348,6 +363,9 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithSingleFlagSequence) {
 
   // Run through the number of frames to be send
   for (i = 0; i < frames; i++) {
+    // Initialize control field structure
+    control.frame = YAHDLC_FRAME_DATA;
+
     // Create frame which must at least be 4 bytes more than data (escaped
     // characters will increase the length)
     ret = yahdlc_frame_data(&control, send_data, sizeof(send_data),
@@ -396,6 +414,9 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithDoubleFlagSequence) {
 
   // Run through the number of frames to be send
   for (i = 0; i < frames; i++) {
+    // Initialize control field structure
+    control.frame = YAHDLC_FRAME_DATA;
+
     // Create frame which must at least be 4 bytes more than data (escaped
     // characters will increase the length)
     ret = yahdlc_frame_data(&control, send_data, sizeof(send_data),
@@ -437,10 +458,13 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFramesWithBitErrors) {
 
   // Run through the bytes in a frame with a single byte of data
   for (i = 0; i < (sizeof(send_data) + 6); i++) {
+    // Initialize control field structure
+    control.frame = YAHDLC_FRAME_DATA;
+
     // Create the frame
     ret = yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
                             &frame_length);
-    BOOST_CHECK(frame_length == (sizeof(send_data) + 6));
+    BOOST_CHECK_EQUAL(frame_length, (sizeof(send_data) + 6));
     BOOST_CHECK_EQUAL(ret, 0);
 
     // Generate a single bit error in each byte in the frame
@@ -453,11 +477,11 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFramesWithBitErrors) {
     // The first and last buffer will return no stop/end flag sequence. The other
     // data will return invalid FCS
     if ((i == 0) || (i == (frame_length - 1))) {
-      BOOST_CHECK(ret == -2);
-      BOOST_CHECK(recv_length == 0);
+      BOOST_CHECK_EQUAL(ret, -2);
+      BOOST_CHECK_EQUAL(recv_length, 0);
     } else {
-      BOOST_CHECK(ret == -3);
-      BOOST_CHECK(recv_length == 6);
+      BOOST_CHECK_EQUAL(ret, -3);
+      BOOST_CHECK_EQUAL(recv_length, 6);
     }
   }
 }
