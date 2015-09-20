@@ -120,7 +120,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
         // Now update the FCS value
         fcs = fcs16(fcs, value);
 
-       // Control field is the second byte after the start flag sequence
+        // Control field is the second byte after the start flag sequence
         if (src_index == start_index + 2) {
           *control = yahdlc_get_control_type(value);
         }
