@@ -5,6 +5,8 @@
 #ifndef YAHDLC_H
 #define YAHDLC_H
 
+#include <errno.h>
+
 /** HDLC start/end flag sequence */
 #define YAHDLC_FLAG_SEQUENCE 0x7D
 
@@ -37,9 +39,9 @@ struct yahdlc_control_t {
  * @param[out] dest Destination buffer (should be able to contain max frame size)
  * @param[out] dest_len Destination buffer length
  * @retval >=0 Success (size of returned value should be discarded from source buffer)
- * @retval -1 Invalid parameter
- * @retval -2 Invalid message
- * @retval -3 Invalid FCS (size of dest_len should be discarded from source buffer)
+ * @retval -EINVAL Invalid parameter
+ * @retval -ENOMSG Invalid message
+ * @retval -EIO Invalid FCS (size of dest_len should be discarded from source buffer)
  */
 int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len);
@@ -53,7 +55,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
  * @param[out] dest Destination buffer (should be bigger than source buffer)
  * @param[out] dest_len Destination buffer length
  * @retval 0 Success
- * @retval -1 Invalid parameter
+ * @retval -EINVAL Invalid parameter
  */
 int yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
                       unsigned int src_len, char *dest, unsigned int *dest_len);

@@ -45,17 +45,17 @@ unsigned char yahdlc_frame_control_type(struct yahdlc_control_t *control) {
   switch (control->frame) {
     case YAHDLC_FRAME_DATA:
       // Create the HDLC I-frame control byte with Poll bit set
-      value |= ((control->seq_no & 0x7) << 1); // Send sequence number
+      value |= ((control->seq_no & 0x7) << 1);  // Send sequence number
       value |= (1 << 4);  // Set Poll bit
       break;
     case YAHDLC_FRAME_ACK:
       // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared
-      value |= ((control->seq_no & 0x7) << 5); // Receive sequence number
+      value |= ((control->seq_no & 0x7) << 5);  // Receive sequence number
       value |= 1;  // Set S-frame bit
       break;
     case YAHDLC_FRAME_NACK:
       // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared
-      value |= ((control->seq_no & 0x7) << 5); // Receive sequence number
+      value |= ((control->seq_no & 0x7) << 5);  // Receive sequence number
       value |= (1 << 3);  // Reject S-frame
       value |= 1;  // Set S-frame bit
       break;
@@ -74,7 +74,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
 
   // Make sure that all parameters are valid
   if (!control || !src || !dest || !dest_len) {
-    return -1;
+    return -EINVAL;
   }
 
   // Run through the data bytes
@@ -134,14 +134,14 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
   if ((start_index < 0) || (end_index < 0)) {
     // Return no start or end flag sequence and make sure destination length is 0
     *dest_len = 0;
-    ret = -2;
+    ret = -ENOMSG;
   } else {
     // A frame is at least 4 bytes in size and has a valid FCS value
     if ((end_index < (start_index + 4)) || (fcs != FCS16_GOOD_VALUE)) {
       // Return FCS error and indicate that data up to end flag sequence in
       // buffer should be discarded
       *dest_len = i;
-      ret = -3;
+      ret = -EIO;
     } else {
       // Return success and indicate that data up to end flag sequence in buffer
       // should be discarded. FCS (16-bit) must be subtracted from the length
@@ -167,7 +167,7 @@ int yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
 
   // Make sure that all parameters are valid
   if (!control || (!src && (src_len > 0)) || !dest || !dest_len) {
-    return -1;
+    return -EINVAL;
   }
 
   // Start by adding the start flag sequence
