@@ -1,11 +1,14 @@
-OBJS = yahdlc_test.o fcs16.o yahdlc.o
+OBJS = yahdlc_test.cpp.o fcs16.o yahdlc.o
 CPPFLAGS=-g -O0 -fprofile-arcs -ftest-coverage -Wall -Wextra -Werror -I../
 
+%.cpp.o: %.cpp
+	@$(CXX) $(CPPFLAGS) -c -o $@ $<
+
 %.o: ../%.c
-	$(CC) $(CPPFLAGS) -c -o $@ $<
+	@$(CC) $(CPPFLAGS) -c -o $@ $<
 
 yahdlc_test: $(OBJS)
-	$(CXX) $(CPPFLAGS) -o $@ $^ -lboost_unit_test_framework
+	@$(CXX) $(CPPFLAGS) -o $@ $^ -lboost_unit_test_framework
 
 test: yahdlc_test
 	@./yahdlc_test --log_level=test_suite
