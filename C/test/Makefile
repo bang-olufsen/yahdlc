@@ -1,5 +1,11 @@
-yahdlc_test:
-	@$(CXX) -g -O0 -fprofile-arcs -ftest-coverage -Wall -Wextra -Werror -I../ ../yahdlc.c ../fcs16.c yahdlc_test.cpp -o yahdlc_test -lboost_unit_test_framework
+OBJS = yahdlc_test.o fcs16.o yahdlc.o
+CPPFLAGS=-g -O0 -fprofile-arcs -ftest-coverage -Wall -Wextra -Werror -I../
+
+%.o: ../%.c
+	$(CC) $(CPPFLAGS) -c -o $@ $<
+
+yahdlc_test: $(OBJS)
+	$(CXX) $(CPPFLAGS) -o $@ $^ -lboost_unit_test_framework
 
 test: yahdlc_test
 	@./yahdlc_test --log_level=test_suite
@@ -18,4 +24,4 @@ coverage-html: coverage
 	@genhtml -o coverage report.info
 
 clean:
-	@rm -rf yahdlc_test coverage *.g* *.info
+	@rm -rf yahdlc_test coverage *.g* *.info *.o

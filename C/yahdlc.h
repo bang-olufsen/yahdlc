@@ -17,17 +17,21 @@
 #define YAHDLC_ALL_STATION_ADDR 0xFF
 
 /** Supported HDLC frame types */
-enum yahdlc_frame_t {
+typedef enum {
   YAHDLC_FRAME_DATA,
   YAHDLC_FRAME_ACK,
   YAHDLC_FRAME_NACK,
-};
+} yahdlc_frame_t;
 
 /** Control field information */
 struct yahdlc_control_t {
   yahdlc_frame_t frame;
   unsigned char seq_no :3;
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Retrieves data from specified buffer containing the HDLC frame. Frames can be
@@ -59,5 +63,9 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
  */
 int yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
                       unsigned int src_len, char *dest, unsigned int *dest_len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
