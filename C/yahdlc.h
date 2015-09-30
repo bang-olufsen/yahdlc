@@ -24,10 +24,10 @@ typedef enum {
 } yahdlc_frame_t;
 
 /** Control field information */
-struct yahdlc_control_t {
+typedef struct {
   yahdlc_frame_t frame;
   unsigned char seq_no :3;
-};
+} yahdlc_control_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,7 +47,7 @@ extern "C" {
  * @retval -ENOMSG Invalid message
  * @retval -EIO Invalid FCS (size of dest_len should be discarded from source buffer)
  */
-int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
+int yahdlc_get_data(yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len);
 
 /**
@@ -61,7 +61,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
  * @retval 0 Success
  * @retval -EINVAL Invalid parameter
  */
-int yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
+int yahdlc_frame_data(yahdlc_control_t *control, const char *src,
                       unsigned int src_len, char *dest, unsigned int *dest_len);
 
 #ifdef __cplusplus
