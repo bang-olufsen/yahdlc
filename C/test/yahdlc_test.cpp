@@ -6,7 +6,7 @@
 BOOST_AUTO_TEST_CASE(yahdlcTestFrameDataInvalidInputs) {
   int ret;
   unsigned int frame_length = 0;
-  struct yahdlc_control_t control;
+  yahdlc_control_t control;
   char send_data[8], frame_data[8];
 
   // Check invalid control field parameter
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFrameDataInvalidInputs) {
 BOOST_AUTO_TEST_CASE(yahdlcTestGetDataInvalidInputs) {
   int ret;
   unsigned int recv_length = 0;
-  struct yahdlc_control_t control;
+  yahdlc_control_t control;
   char frame_data[8], recv_data[8];
 
   // Check invalid control field parameter
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDataFrameControlField) {
   int ret;
   char frame_data[8], recv_data[8];
   unsigned int i, frame_length = 0, recv_length = 0;
-  struct yahdlc_control_t control_send, control_recv;
+  yahdlc_control_t control_send, control_recv;
 
   // Run through the supported sequence numbers (3-bit)
   for (i = 0; i < (1 << 3); i++) {
@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestAckFrameControlField) {
   int ret;
   char frame_data[8], recv_data[8];
   unsigned int i, frame_length = 0, recv_length = 0;
-  struct yahdlc_control_t control_send, control_recv;
+  yahdlc_control_t control_send, control_recv;
 
   // Run through the supported sequence numbers (3-bit)
   for (i = 0; i <= (1 << 3); i++) {
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestNackFrameControlField) {
   int ret;
   char frame_data[8], recv_data[8];
   unsigned int i, frame_length = 0, recv_length = 0;
-  struct yahdlc_control_t control_send, control_recv;
+  yahdlc_control_t control_send, control_recv;
 
   // Run through the supported sequence numbers (3-bit)
   for (i = 0; i <= (1 << 3); i++) {
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestNackFrameControlField) {
 BOOST_AUTO_TEST_CASE(yahdlcTest0To512BytesData) {
   int ret;
   unsigned int i, frame_length = 0, recv_length = 0;
-  struct yahdlc_control_t control_send, control_recv;
+  yahdlc_control_t control_send, control_recv;
   char send_data[512], frame_data[520], recv_data[520];
 
   // Initialize data to be send with random values (up to 0x70 to keep below
@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTest0To512BytesData) {
 BOOST_AUTO_TEST_CASE(yahdlcTest5BytesFrame) {
   int ret;
   unsigned int recv_length = 0;
-  struct yahdlc_control_t control;
+  yahdlc_control_t control;
 
   // Create an invalid frame with only one byte of FCS
   char recv_data[8], frame_data[] = { YAHDLC_FLAG_SEQUENCE, (char) 0xFF, 0x10,
@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDoubleStartFlagSequenceAndEmptyFrame) {
   int ret;
   char frame_data[8], recv_data[16];
   unsigned int frame_length, recv_length = 0;
-  struct yahdlc_control_t control_send, control_recv;
+  yahdlc_control_t control_send, control_recv;
 
   // Initialize control field structure
   control_send.frame = YAHDLC_FRAME_DATA;
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDoubleStartFlagSequenceAndEmptyFrame) {
 
 BOOST_AUTO_TEST_CASE(yahdlcTestEndFlagSequenceInNewBuffer) {
   int ret;
-  struct yahdlc_control_t control;
+  yahdlc_control_t control;
   char send_data[16], frame_data[24], recv_data[24];
   unsigned int i, frame_length = 0, recv_length = 0;
 
@@ -279,7 +279,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestEndFlagSequenceInNewBuffer) {
 
 BOOST_AUTO_TEST_CASE(yahdlcTestFlagSequenceAndControlEscapeInData) {
   int ret;
-  struct yahdlc_control_t control;
+  yahdlc_control_t control;
   unsigned int frame_length = 0, recv_length = 0;
   char send_data[] = { YAHDLC_FLAG_SEQUENCE, YAHDLC_CONTROL_ESCAPE },
       frame_data[16], recv_data[16];
@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFlagSequenceAndControlEscapeInData) {
 
 BOOST_AUTO_TEST_CASE(yahdlcTestGetDataFromMultipleBuffers) {
   int ret;
-  struct yahdlc_control_t control;
+  yahdlc_control_t control;
   char send_data[512], frame_data[530], recv_data[530];
   unsigned int i, frame_length = 0, recv_length = 0, buf_length = 16;
 
@@ -351,7 +351,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestGetDataFromMultipleBuffers) {
 
 BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithSingleFlagSequence) {
   int ret, frame_index = 0;
-  struct yahdlc_control_t control;
+  yahdlc_control_t control;
   char send_data[32], frame_data[512], recv_data[512];
   unsigned int i, frame_length = 0, recv_length = 0, frames = 10;
 
@@ -405,7 +405,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithSingleFlagSequence) {
 
 BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithDoubleFlagSequence) {
   int ret, frame_index = 0;
-  struct yahdlc_control_t control;
+  yahdlc_control_t control;
   char send_data[32], frame_data[512], recv_data[512];
   unsigned int i, frame_length = 0, recv_length = 0, frames = 10;
 
@@ -457,7 +457,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithDoubleFlagSequence) {
 
 BOOST_AUTO_TEST_CASE(yahdlcTestFramesWithBitErrors) {
   int ret;
-  struct yahdlc_control_t control;
+  yahdlc_control_t control;
   unsigned int i, frame_length = 0, recv_length = 0;
   char send_data[] = { 0x55 }, frame_data[8], recv_data[8];
 
