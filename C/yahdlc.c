@@ -1,6 +1,19 @@
 #include "fcs16.h"
 #include "yahdlc.h"
 
+// HDLC Control field bit positions
+#define YAHDLC_CONTROL_S_OR_U_FRAME_BIT 0
+#define YAHDLC_CONTROL_SEND_SEQ_NO_BIT 1
+#define YAHDLC_CONTROL_S_FRAME_TYPE_BIT 2
+#define YAHDLC_CONTROL_POLL_BIT 4
+#define YAHDLC_CONTROL_RECV_SEQ_NO_BIT 5
+
+// HDLC Control type definitions
+#define YAHDLC_CONTROL_TYPE_RECEIVE_READY 0
+#define YAHDLC_CONTROL_TYPE_RECEIVE_NOT_READY 1
+#define YAHDLC_CONTROL_TYPE_REJECT 2
+#define YAHDLC_CONTROL_TYPE_SELECTIVE_REJECT 3
+
 void yahdlc_escape_value(char value, char *dest, int *dest_index) {
   // Check and escape the value if needed
   if ((value == YAHDLC_FLAG_SEQUENCE) || (value == YAHDLC_CONTROL_ESCAPE)) {
@@ -12,59 +25,57 @@ void yahdlc_escape_value(char value, char *dest, int *dest_index) {
   dest[(*dest_index)++] = value;
 }
 
-struct yahdlc_control_t yahdlc_get_control_type(unsigned char control) {
-  struct yahdlc_control_t value;
+yahdlc_control_t yahdlc_get_control_type(unsigned char control) {
+  yahdlc_control_t value;
 
-  // Check if the frame is a S-frame or U-frame (first bit set)
-  if (control & 0x1) {
-    // Check if S-frame is an ACK (Receive Ready S-frame). Here only first bit
-    // out of 4 should be set
-    if ((control & 0xF) == 0x1) {
+  // Check if the frame is a S-frame (or U-frame)
+  if (control & (1 << YAHDLC_CONTROL_S_OR_U_FRAME_BIT)) {
+    // Check if S-frame type is a Receive Ready (ACK)
+    if (((control >> YAHDLC_CONTROL_S_FRAME_TYPE_BIT) & 0x3) == YAHDLC_CONTROL_TYPE_RECEIVE_READY) {
       value.frame = YAHDLC_FRAME_ACK;
     } else {
-      // Assume it is an NACK since Receive Not Ready, Selective Reject and
-      // U-frames are not supported
+      // Assume it is an NACK since Receive Not Ready, Selective Reject and U-frames are not supported
       value.frame = YAHDLC_FRAME_NACK;
     }
 
-    // Add the receive sequence number (3-bit)
-    value.seq_no = ((control >> 5) & 0x7);
+    // Add the receive sequence number from the S-frame (or U-frame)
+    value.seq_no = (control >> YAHDLC_CONTROL_RECV_SEQ_NO_BIT);
   } else {
-    // It must be an I-frame so add the send sequence number (3-bit)
+    // It must be an I-frame so add the send sequence number (receive sequence number is not used)
     value.frame = YAHDLC_FRAME_DATA;
-    value.seq_no = ((control >> 1) & 0x7);
+    value.seq_no = (control >> YAHDLC_CONTROL_SEND_SEQ_NO_BIT);
   }
 
   return value;
 }
 
-unsigned char yahdlc_frame_control_type(struct yahdlc_control_t *control) {
+unsigned char yahdlc_frame_control_type(yahdlc_control_t *control) {
   unsigned char value = 0;
 
   // For details see: https://en.wikipedia.org/wiki/High-Level_Data_Link_Control
   switch (control->frame) {
     case YAHDLC_FRAME_DATA:
       // Create the HDLC I-frame control byte with Poll bit set
-      value |= ((control->seq_no & 0x7) << 1);  // Send sequence number
-      value |= (1 << 4);  // Set Poll bit
+      value |= (control->seq_no << YAHDLC_CONTROL_SEND_SEQ_NO_BIT);
+      value |= (1 << YAHDLC_CONTROL_POLL_BIT);
       break;
     case YAHDLC_FRAME_ACK:
       // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared
-      value |= ((control->seq_no & 0x7) << 5);  // Receive sequence number
-      value |= 1;  // Set S-frame bit
+      value |= (control->seq_no << YAHDLC_CONTROL_RECV_SEQ_NO_BIT);
+      value |= (1 << YAHDLC_CONTROL_S_OR_U_FRAME_BIT);
       break;
     case YAHDLC_FRAME_NACK:
       // Create the HDLC Receive Ready S-frame control byte with Poll bit cleared
-      value |= ((control->seq_no & 0x7) << 5);  // Receive sequence number
-      value |= (1 << 3);  // Reject S-frame
-      value |= 1;  // Set S-frame bit
+      value |= (control->seq_no << YAHDLC_CONTROL_RECV_SEQ_NO_BIT);
+      value |= (YAHDLC_CONTROL_TYPE_REJECT << YAHDLC_CONTROL_S_FRAME_TYPE_BIT);
+      value |= (1 << YAHDLC_CONTROL_S_OR_U_FRAME_BIT);
       break;
   }
 
   return value;
 }
 
-int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
+int yahdlc_get_data(yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len) {
   unsigned int i;
   static unsigned short fcs = FCS16_INIT_VALUE;
@@ -116,13 +127,11 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
         // Now update the FCS value
         fcs = fcs16(fcs, value);
 
-        // Control field is the second byte after the start flag sequence
         if (src_index == start_index + 2) {
+          // Control field is the second byte after the start flag sequence
           *control = yahdlc_get_control_type(value);
-        }
-
-        // Start adding the data values after the Control field to the buffer
-        if (src_index > (start_index + 2)) {
+        } else if (src_index > (start_index + 2)) {
+          // Start adding the data values after the Control field to the buffer
           dest[dest_index++] = value;
         }
       }
@@ -130,22 +139,20 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
     src_index++;
   }
 
-  // Check for invalid frame
+  // Check for invalid frame (no start or end flag sequence)
   if ((start_index < 0) || (end_index < 0)) {
-    // Return no start or end flag sequence and make sure destination length is 0
+    // Return no message and make sure destination length is 0
     *dest_len = 0;
     ret = -ENOMSG;
   } else {
     // A frame is at least 4 bytes in size and has a valid FCS value
     if ((end_index < (start_index + 4)) || (fcs != FCS16_GOOD_VALUE)) {
-      // Return FCS error and indicate that data up to end flag sequence in
-      // buffer should be discarded
+      // Return FCS error and indicate that data up to end flag sequence in buffer should be discarded
       *dest_len = i;
       ret = -EIO;
     } else {
-      // Return success and indicate that data up to end flag sequence in buffer
-      // should be discarded. FCS (16-bit) must be subtracted from the length
-      *dest_len = dest_index - 2;
+      // Return success and indicate that data up to end flag sequence in buffer should be discarded
+      *dest_len = dest_index - sizeof(fcs);
       ret = i;
     }
 
@@ -158,7 +165,7 @@ int yahdlc_get_data(struct yahdlc_control_t *control, const char *src,
   return ret;
 }
 
-int yahdlc_frame_data(struct yahdlc_control_t *control, const char *src,
+int yahdlc_frame_data(yahdlc_control_t *control, const char *src,
                       unsigned int src_len, char *dest, unsigned int *dest_len) {
   unsigned int i;
   int dest_index = 0;
