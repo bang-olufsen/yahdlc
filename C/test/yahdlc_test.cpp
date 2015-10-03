@@ -5,8 +5,8 @@
 
 BOOST_AUTO_TEST_CASE(yahdlcTestFrameDataInvalidInputs) {
   int ret;
-  unsigned int frame_length = 0;
   yahdlc_control_t control;
+  unsigned int frame_length = 0;
   char send_data[8], frame_data[8];
 
   // Check invalid control field parameter
@@ -35,8 +35,8 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFrameDataInvalidInputs) {
 
 BOOST_AUTO_TEST_CASE(yahdlcTestGetDataInvalidInputs) {
   int ret;
-  unsigned int recv_length = 0;
   yahdlc_control_t control;
+  unsigned int recv_length = 0;
   char frame_data[8], recv_data[8];
 
   // Check invalid control field parameter
@@ -80,8 +80,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDataFrameControlField) {
     ret = yahdlc_get_data(&control_recv, frame_data, frame_length, recv_data,
                           &recv_length);
 
-    // Result should be frame_length minus start flag to be discarded and no bytes
-    // received
+    // Result should be frame_length minus start flag to be discarded and no bytes received
     BOOST_CHECK_EQUAL(ret, ((int )frame_length - 1));
     BOOST_CHECK_EQUAL(recv_length, 0);
 
@@ -111,8 +110,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestAckFrameControlField) {
     ret = yahdlc_get_data(&control_recv, frame_data, frame_length, recv_data,
                           &recv_length);
 
-    // Result should be frame_length minus start flag to be discarded and no
-    // bytes received
+    // Result should be frame_length minus start flag to be discarded and no bytes received
     BOOST_CHECK_EQUAL(ret, ((int )frame_length - 1));
     BOOST_CHECK_EQUAL(recv_length, 0);
 
@@ -142,8 +140,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestNackFrameControlField) {
     ret = yahdlc_get_data(&control_recv, frame_data, frame_length, recv_data,
                           &recv_length);
 
-    // Result should be frame_length minus start flag to be discarded and no
-    // bytes received
+    // Result should be frame_length minus start flag to be discarded and no bytes received
     BOOST_CHECK_EQUAL(ret, ((int )frame_length - 1));
     BOOST_CHECK_EQUAL(recv_length, 0);
 
@@ -159,8 +156,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTest0To512BytesData) {
   yahdlc_control_t control_send, control_recv;
   char send_data[512], frame_data[520], recv_data[520];
 
-  // Initialize data to be send with random values (up to 0x70 to keep below
-  // the values to be escaped)
+  // Initialize data to be send with random values (up to 0x70 to keep below the values to be escaped)
   for (i = 0; i < sizeof(send_data); i++) {
     send_data[i] = (char) (rand() % 0x70);
   }
@@ -172,8 +168,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTest0To512BytesData) {
     ret = yahdlc_frame_data(&control_send, send_data, i, frame_data,
                             &frame_length);
 
-    // Check that frame length is maximum 2 bytes larger than data due to
-    // escape of FCS value
+    // Check that frame length is maximum 2 bytes larger than data due to escape of FCS value
     BOOST_CHECK(frame_length <= ((i + 6) + 2));
     BOOST_CHECK_EQUAL(ret, 0);
 
@@ -204,8 +199,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTest5BytesFrame) {
   ret = yahdlc_get_data(&control, frame_data, sizeof(frame_data), recv_data,
                         &recv_length);
 
-  // Check that the decoded data will return invalid FCS error and 4 bytes to be
-  // discarded (size of frame - start flag sequence size)
+  // Check that the decoded data will return invalid FCS error and 4 bytes to be discarded
   BOOST_CHECK_EQUAL(ret, -EIO);
   BOOST_CHECK_EQUAL(recv_length, (sizeof(frame_data) - 1));
 }
@@ -231,8 +225,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDoubleStartFlagSequenceAndEmptyFrame) {
   ret = yahdlc_get_data(&control_recv, frame_data, frame_length, recv_data,
                         &recv_length);
 
-  // Result should be frame_length minus start flag to be discarded and no bytes
-  // received
+  // Result should be frame_length minus start flag to be discarded and no bytes received
   BOOST_CHECK_EQUAL(ret, ((int )frame_length - 1));
   BOOST_CHECK_EQUAL(recv_length, 0);
 }
@@ -243,8 +236,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestEndFlagSequenceInNewBuffer) {
   char send_data[16], frame_data[24], recv_data[24];
   unsigned int i, frame_length = 0, recv_length = 0;
 
-  // Initialize data to be send with random values (up to 0x70 to keep below
-  // the values to be escaped)
+  // Initialize data to be send with random values (up to 0x70 to keep below the values to be escaped)
   for (i = 0; i < sizeof(send_data); i++) {
     send_data[i] = (char) (rand() % 0x70);
   }
@@ -254,13 +246,11 @@ BOOST_AUTO_TEST_CASE(yahdlcTestEndFlagSequenceInNewBuffer) {
   ret = yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
                           &frame_length);
 
-  // Check that frame length is maximum 2 bytes larger than data due to
-  // escape of FCS value
+  // Check that frame length is maximum 2 bytes larger than data due to escape of FCS value
   BOOST_CHECK(frame_length <= ((sizeof(send_data) + 6) + 2));
   BOOST_CHECK_EQUAL(ret, 0);
 
-  // Decode the data up to end flag sequence byte which should return no valid
-  // messages error
+  // Decode the data up to end flag sequence byte which should return no valid messages error
   ret = yahdlc_get_data(&control, frame_data, frame_length - 1, recv_data,
                         &recv_length);
   BOOST_CHECK_EQUAL(ret, -ENOMSG);
@@ -310,8 +300,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestGetDataFromMultipleBuffers) {
   char send_data[512], frame_data[530], recv_data[530];
   unsigned int i, frame_length = 0, recv_length = 0, buf_length = 16;
 
-  // Initialize data to be send with random values (up to 0x70 to keep below
-  // the values to be escaped)
+  // Initialize data to be send with random values (up to 0x70 to keep below the values to be escaped)
   for (i = 0; i < sizeof(send_data); i++) {
     send_data[i] = (char) (rand() % 0x70);
   }
@@ -321,8 +310,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestGetDataFromMultipleBuffers) {
   ret = yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
                           &frame_length);
 
-  // Check that frame length is maximum 2 bytes larger than data due to
-  // escape of FCS value
+  // Check that frame length is maximum 2 bytes larger than data due to escape of FCS value
   BOOST_CHECK(frame_length <= ((sizeof(send_data) + 6) + 2));
   BOOST_CHECK_EQUAL(ret, 0);
 
@@ -337,8 +325,8 @@ BOOST_AUTO_TEST_CASE(yahdlcTestGetDataFromMultipleBuffers) {
       BOOST_CHECK_EQUAL(ret, -ENOMSG);
       BOOST_CHECK_EQUAL(recv_length, 0);
     } else {
-      // The last chunk should return maximum 6 frame byte - 1 start flag
-      // sequence byte + 2 byte for the possible escaped FCS = 7 bytes
+      // The last chunk should return max 6 frame bytes - 1 start flag sequence byte + 2 byte for the possible
+      // escaped FCS = 7 bytes
       BOOST_CHECK(ret <= 7);
       BOOST_CHECK_EQUAL(recv_length, sizeof(send_data));
     }
@@ -355,8 +343,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithSingleFlagSequence) {
   char send_data[32], frame_data[512], recv_data[512];
   unsigned int i, frame_length = 0, recv_length = 0, frames = 10;
 
-  // Initialize data to be send with random values (up to 0x70 to keep below
-  // the values to be escaped)
+  // Initialize data to be send with random values (up to 0x70 to keep below the values to be escaped)
   for (i = 0; i < sizeof(send_data); i++) {
     send_data[i] = (char) (rand() % 0x70);
   }
@@ -368,13 +355,11 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithSingleFlagSequence) {
     ret = yahdlc_frame_data(&control, send_data, sizeof(send_data),
                             &frame_data[frame_index], &frame_length);
 
-    // Check that frame length is maximum 2 bytes larger than data due to
-    // escape of FCS value
+    // Check that frame length is maximum 2 bytes larger than data due to escape of FCS value
     BOOST_CHECK(frame_length <= ((sizeof(send_data) + 6) + 2));
     BOOST_CHECK_EQUAL(ret, 0);
 
-    // Remove the end flag sequence byte as there must only be one flag
-    // sequence byte between frames
+    // Remove the end flag sequence byte as there must only be one flag sequence byte between frames
     frame_index += frame_length - 1;
   }
 
@@ -388,13 +373,12 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithSingleFlagSequence) {
     ret = yahdlc_get_data(&control, &frame_data[frame_index],
                           frame_length - frame_index, recv_data, &recv_length);
 
-    // Check that frame length (minus 1 due to missing end byte sequence) to is
-    // maximum 2 bytes larger than data due to escape of FCS value
+    // Check that frame length (minus 1 due to missing end byte sequence) to is max 2 bytes larger than data
+    // due to escape of FCS value
     BOOST_CHECK(ret <= (int )((sizeof(send_data) + 5) + 2));
     BOOST_CHECK_EQUAL(recv_length, sizeof(send_data));
 
-    // Increment the number of bytes to be discarded from the frame data (source)
-    // buffer
+    // Increment the number of bytes to be discarded from the frame data (source) buffer
     frame_index += ret;
 
     // Compare the send and received bytes
@@ -409,8 +393,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithDoubleFlagSequence) {
   char send_data[32], frame_data[512], recv_data[512];
   unsigned int i, frame_length = 0, recv_length = 0, frames = 10;
 
-  // Initialize data to be send with random values (up to 0x70 to keep below
-  // the values to be escaped)
+  // Initialize data to be send with random values (up to 0x70 to keep below the values to be escaped)
   for (i = 0; i < sizeof(send_data); i++) {
     send_data[i] = (char) (rand() % 0x70);
   }
@@ -422,13 +405,11 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithDoubleFlagSequence) {
     ret = yahdlc_frame_data(&control, send_data, sizeof(send_data),
                             &frame_data[frame_index], &frame_length);
 
-    // Check that frame length is maximum 2 bytes larger than data due to
-    // escape of FCS value
+    // Check that frame length is maximum 2 bytes larger than data due to escape of FCS value
     BOOST_CHECK(frame_length <= ((sizeof(send_data) + 6) + 2));
     BOOST_CHECK_EQUAL(ret, 0);
 
-    // Do not remove end flag sequence to test the silent discard of this
-    // additional byte
+    // Do not remove end flag sequence to test the silent discard of this  additional byte
     frame_index += frame_length;
   }
 
@@ -441,8 +422,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestMultipleFramesWithDoubleFlagSequence) {
     ret = yahdlc_get_data(&control, &frame_data[frame_index],
                           frame_length - frame_index, recv_data, &recv_length);
 
-    // Check that frame length is maximum 2 bytes larger than data due to
-    // escape of FCS value
+    // Check that frame length is maximum 2 bytes larger than data due to escape of FCS value
     BOOST_CHECK(ret <= (int )((sizeof(send_data) + 6) + 2));
     BOOST_CHECK_EQUAL(recv_length, sizeof(send_data));
 
@@ -479,8 +459,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFramesWithBitErrors) {
     ret = yahdlc_get_data(&control, frame_data, frame_length, recv_data,
                           &recv_length);
 
-    // The first and last buffer will return no message. The other data will
-    // return invalid FCS
+    // The first and last buffer will return no message. The other data will return invalid FCS
     if ((i == 0) || (i == (frame_length - 1))) {
       BOOST_CHECK_EQUAL(ret, -ENOMSG);
       BOOST_CHECK_EQUAL(recv_length, 0);

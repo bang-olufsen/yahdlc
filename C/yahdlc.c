@@ -31,7 +31,8 @@ yahdlc_control_t yahdlc_get_control_type(unsigned char control) {
   // Check if the frame is a S-frame (or U-frame)
   if (control & (1 << YAHDLC_CONTROL_S_OR_U_FRAME_BIT)) {
     // Check if S-frame type is a Receive Ready (ACK)
-    if (((control >> YAHDLC_CONTROL_S_FRAME_TYPE_BIT) & 0x3) == YAHDLC_CONTROL_TYPE_RECEIVE_READY) {
+    if (((control >> YAHDLC_CONTROL_S_FRAME_TYPE_BIT) & 0x3)
+        == YAHDLC_CONTROL_TYPE_RECEIVE_READY) {
       value.frame = YAHDLC_FRAME_ACK;
     } else {
       // Assume it is an NACK since Receive Not Ready, Selective Reject and U-frames are not supported
