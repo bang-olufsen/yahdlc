@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestDataFrameControlField) {
   yahdlc_control_t control_send, control_recv;
 
   // Run through the supported sequence numbers (3-bit)
-  for (i = 0; i < (1 << 3); i++) {
+  for (i = 0; i <= 7; i++) {
     // Initialize the control field structure with frame type and sequence number
     control_send.frame = YAHDLC_FRAME_DATA;
     control_send.seq_no = i;
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestAckFrameControlField) {
   yahdlc_control_t control_send, control_recv;
 
   // Run through the supported sequence numbers (3-bit)
-  for (i = 0; i <= (1 << 3); i++) {
+  for (i = 0; i <= 7; i++) {
     // Initialize the control field structure with frame type and sequence number
     control_send.frame = YAHDLC_FRAME_ACK;
     control_send.seq_no = i;
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestNackFrameControlField) {
   yahdlc_control_t control_send, control_recv;
 
   // Run through the supported sequence numbers (3-bit)
-  for (i = 0; i <= (1 << 3); i++) {
+  for (i = 0; i <= 7; i++) {
     // Initialize the control field structure with frame type and sequence number
     control_send.frame = YAHDLC_FRAME_NACK;
     control_send.seq_no = i;
@@ -192,8 +192,9 @@ BOOST_AUTO_TEST_CASE(yahdlcTest5BytesFrame) {
   yahdlc_control_t control;
 
   // Create an invalid frame with only one byte of FCS
-  char recv_data[8], frame_data[] = { YAHDLC_FLAG_SEQUENCE, (char) 0xFF, 0x10,
-      0x33, YAHDLC_FLAG_SEQUENCE };
+  char recv_data[8], frame_data[] = { YAHDLC_FLAG_SEQUENCE,
+      (char) YAHDLC_ALL_STATION_ADDR, 0x10, 0x33,
+      YAHDLC_FLAG_SEQUENCE };
 
   // Now decode the frame
   ret = yahdlc_get_data(&control, frame_data, sizeof(frame_data), recv_data,
