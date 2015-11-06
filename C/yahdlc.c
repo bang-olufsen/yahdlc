@@ -14,7 +14,7 @@
 #define YAHDLC_CONTROL_TYPE_REJECT 2
 #define YAHDLC_CONTROL_TYPE_SELECTIVE_REJECT 3
 
-// Variables used for single pass operations in yahdlc_get_data
+// Variables used in yahdlc_get_data to keep track of received buffers
 static char yahdlc_control_escape = 0;
 static unsigned short yahdlc_fcs = FCS16_INIT_VALUE;
 static int yahdlc_start_index = -1, yahdlc_end_index = -1, yahdlc_src_index = 0,
