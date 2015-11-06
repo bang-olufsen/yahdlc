@@ -14,6 +14,12 @@
 #define YAHDLC_CONTROL_TYPE_REJECT 2
 #define YAHDLC_CONTROL_TYPE_SELECTIVE_REJECT 3
 
+// Variables used for single pass operations in yahdlc_get_data
+static char yahdlc_control_escape = 0;
+static unsigned short yahdlc_fcs = FCS16_INIT_VALUE;
+static int yahdlc_start_index = -1, yahdlc_end_index = -1, yahdlc_src_index = 0,
+    yahdlc_dest_index = 0;
+
 void yahdlc_escape_value(char value, char *dest, int *dest_index) {
   // Check and escape the value if needed
   if ((value == YAHDLC_FLAG_SEQUENCE) || (value == YAHDLC_CONTROL_ESCAPE)) {
@@ -76,13 +82,17 @@ unsigned char yahdlc_frame_control_type(yahdlc_control_t *control) {
   return value;
 }
 
+void yahdlc_get_data_reset() {
+  yahdlc_fcs = FCS16_INIT_VALUE;
+  yahdlc_start_index = yahdlc_end_index = -1;
+  yahdlc_src_index = yahdlc_dest_index = 0;
+  yahdlc_control_escape = 0;
+}
+
 int yahdlc_get_data(yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len) {
-  unsigned int i;
-  static unsigned short fcs = FCS16_INIT_VALUE;
-  static unsigned char control_escape = 0, value = 0;
-  static int ret = -1, start_index = -1, end_index = -1, src_index = 0,
-      dest_index = 0;
+  int i, ret;
+  char value;
 
   // Make sure that all parameters are valid
   if (!control || !src || !dest || !dest_len) {
@@ -90,77 +100,76 @@ int yahdlc_get_data(yahdlc_control_t *control, const char *src,
   }
 
   // Run through the data bytes
-  for (i = 0; i < src_len; i++) {
+  for (i = 0; i < (int) src_len; i++) {
     // First find the start flag sequence
-    if (start_index < 0) {
+    if (yahdlc_start_index < 0) {
       if (src[i] == YAHDLC_FLAG_SEQUENCE) {
         // Check if an additional flag sequence byte is present
-        if ((i < (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE)) {
+        if ((i < (int) (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE)) {
           // Just loop again to silently discard it (accordingly to HDLC)
           continue;
         }
 
-        start_index = src_index;
+        yahdlc_start_index = yahdlc_src_index;
       }
     } else {
       // Check for end flag sequence
       if (src[i] == YAHDLC_FLAG_SEQUENCE) {
         // Check if an additional flag sequence byte is present or earlier received
-        if (((i < (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE))
-            || ((start_index + 1) == src_index)) {
+        if (((i < (int) (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE))
+            || ((yahdlc_start_index + 1) == yahdlc_src_index)) {
           // Just loop again to silently discard it (accordingly to HDLC)
           continue;
         }
 
-        end_index = src_index;
+        yahdlc_end_index = yahdlc_src_index;
         break;
       } else if (src[i] == YAHDLC_CONTROL_ESCAPE) {
-        control_escape = 1;
+        yahdlc_control_escape = 1;
       } else {
         // Update the value based on any control escape received
-        if (control_escape) {
-          control_escape = 0;
+        if (yahdlc_control_escape) {
+          yahdlc_control_escape = 0;
           value = src[i] ^ 0x20;
         } else {
           value = src[i];
         }
 
         // Now update the FCS value
-        fcs = fcs16(fcs, value);
+        yahdlc_fcs = fcs16(yahdlc_fcs, value);
 
-        if (src_index == start_index + 2) {
+        if (yahdlc_src_index == yahdlc_start_index + 2) {
           // Control field is the second byte after the start flag sequence
           *control = yahdlc_get_control_type(value);
-        } else if (src_index > (start_index + 2)) {
+        } else if (yahdlc_src_index > (yahdlc_start_index + 2)) {
           // Start adding the data values after the Control field to the buffer
-          dest[dest_index++] = value;
+          dest[yahdlc_dest_index++] = value;
         }
       }
     }
-    src_index++;
+    yahdlc_src_index++;
   }
 
   // Check for invalid frame (no start or end flag sequence)
-  if ((start_index < 0) || (end_index < 0)) {
+  if ((yahdlc_start_index < 0) || (yahdlc_end_index < 0)) {
     // Return no message and make sure destination length is 0
     *dest_len = 0;
     ret = -ENOMSG;
   } else {
     // A frame is at least 4 bytes in size and has a valid FCS value
-    if ((end_index < (start_index + 4)) || (fcs != FCS16_GOOD_VALUE)) {
+    if ((yahdlc_end_index < (yahdlc_start_index + 4))
+        || (yahdlc_fcs != FCS16_GOOD_VALUE)) {
       // Return FCS error and indicate that data up to end flag sequence in buffer should be discarded
       *dest_len = i;
       ret = -EIO;
     } else {
       // Return success and indicate that data up to end flag sequence in buffer should be discarded
-      *dest_len = dest_index - sizeof(fcs);
+      *dest_len = yahdlc_dest_index - sizeof(yahdlc_fcs);
       ret = i;
     }
 
     // Reset values for next frame
-    fcs = FCS16_INIT_VALUE;
-    src_index = dest_index = 0;
-    start_index = end_index = -1;
+    yahdlc_get_data_reset();
   }
 
   return ret;

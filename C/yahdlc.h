@@ -8,10 +8,10 @@
 #include <errno.h>
 
 /** HDLC start/end flag sequence */
-#define YAHDLC_FLAG_SEQUENCE 0x7D
+#define YAHDLC_FLAG_SEQUENCE 0x7E
 
 /** HDLC control escape value */
-#define YAHDLC_CONTROL_ESCAPE 0x7E
+#define YAHDLC_CONTROL_ESCAPE 0x7D
 
 /** HDLC all station address */
 #define YAHDLC_ALL_STATION_ADDR 0xFF
@@ -49,6 +49,11 @@ extern "C" {
  */
 int yahdlc_get_data(yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len);
+
+/**
+ * Resets values used in yahdlc_get_data function to keep track of received buffers
+ */
+void yahdlc_get_data_reset();
 
 /**
  * Creates HDLC frame with specified data buffer.
