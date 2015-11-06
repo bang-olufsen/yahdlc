@@ -91,8 +91,9 @@ void yahdlc_get_data_reset() {
 
 int yahdlc_get_data(yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len) {
-  int i, ret;
+  int ret;
   char value;
+  unsigned int i;
 
   // Make sure that all parameters are valid
   if (!control || !src || !dest || !dest_len) {
@@ -100,12 +101,12 @@ int yahdlc_get_data(yahdlc_control_t *control, const char *src,
   }
 
   // Run through the data bytes
-  for (i = 0; i < (int) src_len; i++) {
+  for (i = 0; i < src_len; i++) {
     // First find the start flag sequence
     if (yahdlc_start_index < 0) {
       if (src[i] == YAHDLC_FLAG_SEQUENCE) {
         // Check if an additional flag sequence byte is present
-        if ((i < (int) (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE)) {
+        if ((i < (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE)) {
           // Just loop again to silently discard it (accordingly to HDLC)
           continue;
         }
@@ -116,7 +117,7 @@ int yahdlc_get_data(yahdlc_control_t *control, const char *src,
       // Check for end flag sequence
       if (src[i] == YAHDLC_FLAG_SEQUENCE) {
         // Check if an additional flag sequence byte is present or earlier received
-        if (((i < (int) (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE))
+        if (((i < (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE))
             || ((yahdlc_start_index + 1) == yahdlc_src_index)) {
           // Just loop again to silently discard it (accordingly to HDLC)
           continue;
