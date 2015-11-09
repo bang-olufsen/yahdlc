@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFlagSequenceAndControlEscapeInData) {
   int ret;
   yahdlc_control_t control;
   unsigned int frame_length = 0, recv_length = 0;
-  char send_data[] = { YAHDLC_FLAG_SEQUENCE, YAHDLC_CONTROL_ESCAPE },
+  char send_data[] = { YAHDLC_FLAG_SEQUENCE, 0x11, YAHDLC_CONTROL_ESCAPE },
       frame_data[16], recv_data[16];
 
   // Initialize control field structure and create frame
@@ -280,8 +280,8 @@ BOOST_AUTO_TEST_CASE(yahdlcTestFlagSequenceAndControlEscapeInData) {
   ret = yahdlc_frame_data(&control, send_data, sizeof(send_data), frame_data,
                           &frame_length);
 
-  // Length should be frame size (6) + 2 data bytes + 2 escaped characters = 10
-  BOOST_CHECK_EQUAL(frame_length, 10);
+  // Length should be frame size (6) + 3 data bytes + 2 escaped characters = 11
+  BOOST_CHECK_EQUAL(frame_length, 11);
   BOOST_CHECK_EQUAL(ret, 0);
 
   // Decode the frame
