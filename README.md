@@ -28,3 +28,9 @@ A  X<-- B    ACK [Seq No = 2]
 *Timeout*
 A ----> B   DATA [Seq No = 1]
 ```
+
+## Programming languages
+
+Currently yahdlc supports C/C++ and Python. Python bindings for yahdlc has been implemented by SkypLabs and can be found here:
+
+https://github.com/SkypLabs/python4yahdlc
