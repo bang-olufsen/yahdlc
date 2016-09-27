@@ -39,6 +39,10 @@ BOOST_AUTO_TEST_CASE(yahdlcTestGetDataInvalidInputs) {
   unsigned int recv_length = 0;
   char frame_data[8], recv_data[8];
 
+  ret = yahdlc_get_data_with_state(NULL, &control, frame_data, sizeof(frame_data),
+                        recv_data, &recv_length);
+  BOOST_CHECK_EQUAL(ret, -EINVAL);
+
   // Check invalid control field parameter
   ret = yahdlc_get_data(NULL, frame_data, sizeof(frame_data), recv_data,
                         &recv_length);
