@@ -29,6 +29,18 @@ typedef struct {
   unsigned char seq_no :3;
 } yahdlc_control_t;
 
+/** Variables used in yahdlc_get_data and yahdlc_get_data_with_state
+ * to keep track of received buffers
+ */
+typedef struct {
+  char yahdlc_control_escape;
+  unsigned short yahdlc_fcs;
+  int yahdlc_start_index;
+  int yahdlc_end_index;
+  int yahdlc_src_index;
+  int yahdlc_dest_index;
+} yahdlc_state_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,14 +58,41 @@ extern "C" {
  * @retval -EINVAL Invalid parameter
  * @retval -ENOMSG Invalid message
  * @retval -EIO Invalid FCS (size of dest_len should be discarded from source buffer)
+ *
+ * @see yahdlc_get_data_with_state
  */
 int yahdlc_get_data(yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len);
 
 /**
+ * Retrieves data from specified buffer containing the HDLC frame. Frames can be
+ * parsed from multiple buffers e.g. when received via UART.
+ *
+ * This function is a variation of @ref yahdlc_get_data
+ * The difference is only in first argument: yahdlc_state_t *state
+ * Data under that pointer is used to keep track of internal buffers.
+ *
+ * @see yahdlc_get_data
+ */
+int yahdlc_get_data_with_state(yahdlc_state_t *state, yahdlc_control_t *control, const char *src,
+                    unsigned int src_len, char *dest, unsigned int *dest_len);
+
+
+/**
  * Resets values used in yahdlc_get_data function to keep track of received buffers
  */
 void yahdlc_get_data_reset();
+
+/**
+ * This is a variation of @ref yahdlc_get_data_reset
+ * Resets state values that are under the pointer provided as argument
+ *
+ * This function need to be called before the first call to yahdlc_get_data_with_state
+ * when custom state storage is used.
+ *
+ * @see yahdlc_get_data_reset
+ */
+void yahdlc_get_data_reset_with_state(yahdlc_state_t *state);
 
 /**
  * Creates HDLC frame with specified data buffer.
