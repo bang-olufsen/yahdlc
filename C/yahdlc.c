@@ -14,13 +14,13 @@
 #define YAHDLC_CONTROL_TYPE_REJECT 2
 #define YAHDLC_CONTROL_TYPE_SELECTIVE_REJECT 3
 
-static yahdlc_state_t yahdlc_static_state = {
-  .yahdlc_control_escape = 0,
-  .yahdlc_fcs = FCS16_INIT_VALUE,
-  .yahdlc_start_index = -1,
-  .yahdlc_end_index = -1,
-  .yahdlc_src_index = 0,
-  .yahdlc_dest_index = 0,
+yahdlc_state_t yahdlc_state = {
+  .control_escape = 0,
+  .fcs = FCS16_INIT_VALUE,
+  .start_index = -1,
+  .end_index = -1,
+  .src_index = 0,
+  .dest_index = 0,
 };
 
 void yahdlc_escape_value(char value, char *dest, int *dest_index) {
@@ -86,19 +86,19 @@ unsigned char yahdlc_frame_control_type(yahdlc_control_t *control) {
 }
 
 void yahdlc_get_data_reset() {
-  yahdlc_get_data_reset_with_state(&yahdlc_static_state);
+  yahdlc_get_data_reset_with_state(&yahdlc_state);
 }
 
 void yahdlc_get_data_reset_with_state(yahdlc_state_t *state) {
-  state->yahdlc_fcs = FCS16_INIT_VALUE;
-  state->yahdlc_start_index = state->yahdlc_end_index = -1;
-  state->yahdlc_src_index = state->yahdlc_dest_index = 0;
-  state->yahdlc_control_escape = 0;
+  state->fcs = FCS16_INIT_VALUE;
+  state->start_index = state->end_index = -1;
+  state->src_index = state->dest_index = 0;
+  state->control_escape = 0;
 }
 
 int yahdlc_get_data(yahdlc_control_t *control, const char *src,
                     unsigned int src_len, char *dest, unsigned int *dest_len) {
-  return yahdlc_get_data_with_state(&yahdlc_static_state, control, src, src_len, dest, dest_len);
+  return yahdlc_get_data_with_state(&yahdlc_state, control, src, src_len, dest, dest_len);
 }
 
 int yahdlc_get_data_with_state(yahdlc_state_t *state, yahdlc_control_t *control, const char *src,
@@ -115,7 +115,7 @@ int yahdlc_get_data_with_state(yahdlc_state_t *state, yahdlc_control_t *control,
   // Run through the data bytes
   for (i = 0; i < src_len; i++) {
     // First find the start flag sequence
-    if (state->yahdlc_start_index < 0) {
+    if (state->start_index < 0) {
       if (src[i] == YAHDLC_FLAG_SEQUENCE) {
         // Check if an additional flag sequence byte is present
         if ((i < (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE)) {
@@ -123,61 +123,61 @@ int yahdlc_get_data_with_state(yahdlc_state_t *state, yahdlc_control_t *control,
           continue;
         }
 
-        state->yahdlc_start_index = state->yahdlc_src_index;
+        state->start_index = state->src_index;
       }
     } else {
       // Check for end flag sequence
       if (src[i] == YAHDLC_FLAG_SEQUENCE) {
         // Check if an additional flag sequence byte is present or earlier received
         if (((i < (src_len - 1)) && (src[i + 1] == YAHDLC_FLAG_SEQUENCE))
-            || ((state->yahdlc_start_index + 1) == state->yahdlc_src_index)) {
+            || ((state->start_index + 1) == state->src_index)) {
           // Just loop again to silently discard it (accordingly to HDLC)
           continue;
         }
 
-        state->yahdlc_end_index = state->yahdlc_src_index;
+        state->end_index = state->src_index;
         break;
       } else if (src[i] == YAHDLC_CONTROL_ESCAPE) {
-        state->yahdlc_control_escape = 1;
+        state->control_escape = 1;
       } else {
         // Update the value based on any control escape received
-        if (state->yahdlc_control_escape) {
-          state->yahdlc_control_escape = 0;
+        if (state->control_escape) {
+          state->control_escape = 0;
           value = src[i] ^ 0x20;
         } else {
           value = src[i];
         }
 
         // Now update the FCS value
-        state->yahdlc_fcs = fcs16(state->yahdlc_fcs, value);
+        state->fcs = fcs16(state->fcs, value);
 
-        if (state->yahdlc_src_index == state->yahdlc_start_index + 2) {
+        if (state->src_index == state->start_index + 2) {
           // Control field is the second byte after the start flag sequence
           *control = yahdlc_get_control_type(value);
-        } else if (state->yahdlc_src_index > (state->yahdlc_start_index + 2)) {
+        } else if (state->src_index > (state->start_index + 2)) {
           // Start adding the data values after the Control field to the buffer
-          dest[state->yahdlc_dest_index++] = value;
+          dest[state->dest_index++] = value;
         }
       }
     }
-    state->yahdlc_src_index++;
+    state->src_index++;
   }
 
   // Check for invalid frame (no start or end flag sequence)
-  if ((state->yahdlc_start_index < 0) || (state->yahdlc_end_index < 0)) {
+  if ((state->start_index < 0) || (state->end_index < 0)) {
     // Return no message and make sure destination length is 0
     *dest_len = 0;
     ret = -ENOMSG;
   } else {
     // A frame is at least 4 bytes in size and has a valid FCS value
-    if ((state->yahdlc_end_index < (state->yahdlc_start_index + 4))
-        || (state->yahdlc_fcs != FCS16_GOOD_VALUE)) {
+    if ((state->end_index < (state->start_index + 4))
+        || (state->fcs != FCS16_GOOD_VALUE)) {
       // Return FCS error and indicate that data up to end flag sequence in buffer should be discarded
       *dest_len = i;
       ret = -EIO;
     } else {
       // Return success and indicate that data up to end flag sequence in buffer should be discarded
-      *dest_len = state->yahdlc_dest_index - sizeof(state->yahdlc_fcs);
+      *dest_len = state->dest_index - sizeof(state->fcs);
       ret = i;
     }
 

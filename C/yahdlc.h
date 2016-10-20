@@ -33,12 +33,12 @@ typedef struct {
  * to keep track of received buffers
  */
 typedef struct {
-  char yahdlc_control_escape;
-  unsigned short yahdlc_fcs;
-  int yahdlc_start_index;
-  int yahdlc_end_index;
-  int yahdlc_src_index;
-  int yahdlc_dest_index;
+  char control_escape;
+  unsigned short fcs;
+  int start_index;
+  int end_index;
+  int src_index;
+  int dest_index;
 } yahdlc_state_t;
 
 #ifdef __cplusplus
