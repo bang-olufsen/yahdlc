@@ -3,6 +3,8 @@
 #include <boost/test/unit_test.hpp>
 #include "yahdlc.h"
 
+extern yahdlc_state_t yahdlc_static_state;
+
 BOOST_AUTO_TEST_CASE(yahdlcTestFrameDataInvalidInputs) {
   int ret;
   yahdlc_control_t control;
@@ -62,6 +64,17 @@ BOOST_AUTO_TEST_CASE(yahdlcTestGetDataInvalidInputs) {
   ret = yahdlc_get_data(&control, frame_data, sizeof(frame_data), recv_data,
   NULL);
   BOOST_CHECK_EQUAL(ret, -EINVAL);
+}
+
+BOOST_AUTO_TEST_CASE(yahdlcTestGetDataReset) {
+  int ret;
+  yahdlc_state_t state;
+
+  yahdlc_get_data_reset();
+  yahdlc_get_data_reset_with_state(&state);
+
+  ret = memcmp((void)state, yahdlc_state_t yahdlc_static_state, sizeof(state));
+  BOOST_CHECK_EQUAL(ret, 0);
 }
 
 BOOST_AUTO_TEST_CASE(yahdlcTestDataFrameControlField) {

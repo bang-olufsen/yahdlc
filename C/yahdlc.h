@@ -75,7 +75,7 @@ int yahdlc_get_data(yahdlc_control_t *control, const char *src,
  * @see yahdlc_get_data
  */
 int yahdlc_get_data_with_state(yahdlc_state_t *state, yahdlc_control_t *control, const char *src,
-                    unsigned int src_len, char *dest, unsigned int *dest_len);
+                               unsigned int src_len, char *dest, unsigned int *dest_len);
 
 
 /**
