@@ -14,7 +14,7 @@
 #define YAHDLC_CONTROL_TYPE_REJECT 2
 #define YAHDLC_CONTROL_TYPE_SELECTIVE_REJECT 3
 
-yahdlc_state_t yahdlc_state = {
+static yahdlc_state_t yahdlc_state = {
   .control_escape = 0,
   .fcs = FCS16_INIT_VALUE,
   .start_index = -1,
@@ -22,6 +22,25 @@ yahdlc_state_t yahdlc_state = {
   .src_index = 0,
   .dest_index = 0,
 };
+
+int yahdlc_set_state(yahdlc_state_t *state) {
+  if (!state) {
+    return -EINVAL;
+  }
+
+  yahdlc_state = *state;
+  return 0;
+}
+
+
+int yahdlc_get_state(yahdlc_state_t *state) {
+  if (!state) {
+    return -EINVAL;
+  }
+
+  *state = yahdlc_state;
+  return 0;
+}
 
 void yahdlc_escape_value(char value, char *dest, int *dest_index) {
   // Check and escape the value if needed

@@ -46,6 +46,24 @@ extern "C" {
 #endif
 
 /**
+ * Set the yahdlc state
+ *
+ * @param[in] state The new yahdlc state to be used
+ * @retval 0 Success
+ * @retval -EINVAL Invalid parameter
+ */
+int yahdlc_set_state(yahdlc_state_t *state);
+
+/**
+ * Get current yahdlc state
+ *
+ * @param[out] state Current yahdlc state
+ * @retval 0 Success
+ * @retval -EINVAL Invalid parameter
+ */
+int yahdlc_get_state(yahdlc_state_t *state);
+
+/**
  * Retrieves data from specified buffer containing the HDLC frame. Frames can be
  * parsed from multiple buffers e.g. when received via UART.
  *
