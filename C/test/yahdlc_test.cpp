@@ -64,13 +64,37 @@ BOOST_AUTO_TEST_CASE(yahdlcTestGetDataInvalidInputs) {
   BOOST_CHECK_EQUAL(ret, -EINVAL);
 }
 
+BOOST_AUTO_TEST_CASE(yahdlcTestSetGetState) {
+  int ret;
+  yahdlc_state_t state, yahdlc_state;
+
+  state.fcs = 123;
+
+  ret = yahdlc_set_state(NULL);
+  BOOST_CHECK_EQUAL(ret, -EINVAL);
+
+  ret = yahdlc_set_state(&state);
+  BOOST_CHECK_EQUAL(ret, 0);
+
+  ret = yahdlc_get_state(NULL);
+  BOOST_CHECK_EQUAL(ret, -EINVAL);
+
+  ret = yahdlc_get_state(&yahdlc_state);
+  BOOST_CHECK_EQUAL(ret, 0);
+  BOOST_CHECK_EQUAL(state.control_escape, yahdlc_state.control_escape);
+  BOOST_CHECK_EQUAL(state.fcs, yahdlc_state.fcs);
+  BOOST_CHECK_EQUAL(state.start_index, yahdlc_state.start_index);
+  BOOST_CHECK_EQUAL(state.end_index, yahdlc_state.end_index);
+  BOOST_CHECK_EQUAL(state.src_index, yahdlc_state.src_index);
+  BOOST_CHECK_EQUAL(state.dest_index, yahdlc_state.dest_index);
+}
+
 BOOST_AUTO_TEST_CASE(yahdlcTestGetDataReset) {
   yahdlc_state_t state, yahdlc_state;
 
   yahdlc_get_data_reset();
   yahdlc_get_data_reset_with_state(&state);
   yahdlc_get_state(&yahdlc_state);
-
   BOOST_CHECK_EQUAL(state.control_escape, yahdlc_state.control_escape);
   BOOST_CHECK_EQUAL(state.fcs, yahdlc_state.fcs);
   BOOST_CHECK_EQUAL(state.start_index, yahdlc_state.start_index);
