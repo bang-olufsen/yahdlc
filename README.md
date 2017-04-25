@@ -1,6 +1,6 @@
 # yahdlc - Yet Another HDLC
 
-[![Build Status](https://travis-ci.org/bang-olufsen/yahdlc.svg)](https://travis-ci.org/bang-olufsen/yahdlc) [![Coverage Status](https://coveralls.io/repos/bang-olufsen/yahdlc/badge.svg?branch=master&service=github)](https://coveralls.io/github/bang-olufsen/yahdlc?branch=master) [![License](https://img.shields.io/badge/license-MIT_License-blue.svg?style=flat)](LICENSE)
+[![Build Status](https://travis-ci.org/bang-olufsen/yahdlc.svg)](https://travis-ci.org/bang-olufsen/yahdlc) [![Coverage Status](https://coveralls.io/repos/bang-olufsen/yahdlc/badge.svg?branch=master&service=github)](https://coveralls.io/github/bang-olufsen/yahdlc?branch=master) [![Scan_Coverity](https://img.shields.io/coverity/scan/12502.svg)](scan) [![License](https://img.shields.io/badge/license-MIT_License-blue.svg?style=flat)](LICENSE)
 
 The Yet Another High-Level Data Link Control implementation is a framing protocol optimized for embedded communication with single pass operations. It uses the HDLC asynchronous framing format. For more information see:
 
