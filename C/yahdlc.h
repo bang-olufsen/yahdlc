@@ -5,6 +5,7 @@
 #ifndef YAHDLC_H
 #define YAHDLC_H
 
+#include "fcs.h"
 #include <errno.h>
 
 /** HDLC start/end flag sequence */
@@ -34,7 +35,7 @@ typedef struct {
  */
 typedef struct {
   char control_escape;
-  unsigned short fcs;
+  FCS_SIZE fcs;
   int start_index;
   int end_index;
   int src_index;
