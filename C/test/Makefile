@@ -1,4 +1,4 @@
-OBJS = yahdlc_test.cpp.o fcs16.o yahdlc.o
+OBJS = yahdlc_test.cpp.o fcs.o yahdlc.o
 CPPFLAGS=-g -O0 -fprofile-arcs -ftest-coverage -Wall -Wextra -Werror -I../
 
 %.cpp.o: %.cpp
