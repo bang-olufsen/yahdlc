@@ -21,7 +21,7 @@ coverage: yahdlc_test
 	@lcov  --remove all.info "yahdlc_test.cpp" "boost/*" "c++/*" -o report.info -q
 
 coveralls: coverage
-	@coveralls-lcov -t $(REPO_TOKEN) report.info
+	@coveralls-lcov -t=$(REPO_TOKEN) report.info
 
 coverage-html: coverage
 	@genhtml -o coverage report.info
