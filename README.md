@@ -6,7 +6,7 @@ The Yet Another High-Level Data Link Control implementation is a framing protoco
 
 https://en.wikipedia.org/wiki/High-Level_Data_Link_Control
 
-The supported frames are limited to DATA (I-frame with Poll bit), ACK (S-frame Receive Ready with Final bit) and NACK (S-frame Reject with Final bit). All DATA frames must be acknowledged or negative acknowledged using the defined ACK and NACK frames. The Address and Control fields uses the 8-bit format which means that the highest sequence number is 7. The FCS field is 16-bit.
+The supported frames are limited to DATA (I-frame with Poll bit), ACK (S-frame Receive Ready with Final bit) and NACK (S-frame Reject with Final bit). All DATA frames must be acknowledged or negative acknowledged using the defined ACK and NACK frames. The Address and Control fields uses the 8-bit format which means that the highest sequence number is 7. The FCS field is 16-bit by default, but can be set to 32-bit by the definition of "CRC32".
 
 Below are some examples on the usage:
 

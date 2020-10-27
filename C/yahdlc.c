@@ -1,4 +1,3 @@
-#include "fcs16.h"
 #include "yahdlc.h"
 
 // HDLC Control field bit positions
@@ -16,7 +15,7 @@
 
 static yahdlc_state_t yahdlc_state = {
   .control_escape = 0,
-  .fcs = FCS16_INIT_VALUE,
+  .fcs = FCS_INIT_VALUE,
   .start_index = -1,
   .end_index = -1,
   .src_index = 0,
@@ -109,7 +108,7 @@ void yahdlc_get_data_reset() {
 }
 
 void yahdlc_get_data_reset_with_state(yahdlc_state_t *state) {
-  state->fcs = FCS16_INIT_VALUE;
+  state->fcs = FCS_INIT_VALUE;
   state->start_index = state->end_index = -1;
   state->src_index = state->dest_index = 0;
   state->control_escape = 0;
@@ -168,7 +167,7 @@ int yahdlc_get_data_with_state(yahdlc_state_t *state, yahdlc_control_t *control,
         }
 
         // Now update the FCS value
-        state->fcs = fcs16(state->fcs, value);
+        state->fcs = calc_fcs(state->fcs, value);
 
         if (state->src_index == state->start_index + 2) {
           // Control field is the second byte after the start flag sequence
@@ -190,7 +189,7 @@ int yahdlc_get_data_with_state(yahdlc_state_t *state, yahdlc_control_t *control,
   } else {
     // A frame is at least 4 bytes in size and has a valid FCS value
     if ((state->end_index < (state->start_index + 4))
-        || (state->fcs != FCS16_GOOD_VALUE)) {
+        || (state->fcs != FCS_GOOD_VALUE)) {
       // Return FCS error and indicate that data up to end flag sequence in buffer should be discarded
       *dest_len = i;
       ret = -EIO;
@@ -212,7 +211,7 @@ int yahdlc_frame_data(yahdlc_control_t *control, const char *src,
   unsigned int i;
   int dest_index = 0;
   unsigned char value = 0;
-  unsigned short fcs = FCS16_INIT_VALUE;
+  FCS_SIZE fcs = FCS_INIT_VALUE;
 
   // Make sure that all parameters are valid
   if (!control || (!src && (src_len > 0)) || !dest || !dest_len) {
@@ -223,25 +222,25 @@ int yahdlc_frame_data(yahdlc_control_t *control, const char *src,
   dest[dest_index++] = YAHDLC_FLAG_SEQUENCE;
 
   // Add the all-station address from HDLC (broadcast)
-  fcs = fcs16(fcs, YAHDLC_ALL_STATION_ADDR);
+  fcs = calc_fcs(fcs, YAHDLC_ALL_STATION_ADDR);
   yahdlc_escape_value(YAHDLC_ALL_STATION_ADDR, dest, &dest_index);
 
   // Add the framed control field value
   value = yahdlc_frame_control_type(control);
-  fcs = fcs16(fcs, value);
+  fcs = calc_fcs(fcs, value);
   yahdlc_escape_value(value, dest, &dest_index);
 
   // Only DATA frames should contain data
   if (control->frame == YAHDLC_FRAME_DATA) {
     // Calculate FCS and escape data
     for (i = 0; i < src_len; i++) {
-      fcs = fcs16(fcs, src[i]);
+      fcs = calc_fcs(fcs, src[i]);
       yahdlc_escape_value(src[i], dest, &dest_index);
     }
   }
 
   // Invert the FCS value accordingly to the specification
-  fcs ^= 0xFFFF;
+  fcs ^= FCS_INVERT_MASK;
 
   // Run through the FCS bytes and escape the values
   for (i = 0; i < sizeof(fcs); i++) {
